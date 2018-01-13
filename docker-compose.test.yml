@@ -3,8 +3,6 @@ services:
   clipstitcher:
     build: ./clipstitcher
     command: 'go test -v ./...'
-    volumes:
-      - ./clipstitcher:/go/src/github.com/user/clipstitcher
     environment:
       APP_ENV: test
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
