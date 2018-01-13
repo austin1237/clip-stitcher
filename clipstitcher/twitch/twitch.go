@@ -23,32 +23,46 @@ func (tService TwitchService) GetVideoLinks() ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	clipSrcs, err := getClipSrcs(pageUrls)
+	clipHTMLS, err := getClipHTML(pageUrls)
+	if err != nil {
+		return []string{}, err
+	}
+	clipSrcs, err := getSrcsFromHTML(clipHTMLS)
 	return clipSrcs, err
 }
 
-func getClipSrcs(clipUrls []string) ([]string, error) {
-	clipSrcs := []string{}
+func getClipHTML(clipUrls []string) ([]string, error) {
+	clipHTMLs := []string{}
 	desiredCount := len(clipUrls)
-	scrapResponses := make(chan asyncString, desiredCount)
+	htmlResponses := make(chan asyncString, desiredCount)
 
 	for _, url := range clipUrls {
-		go scrapVidSrcOnPage(url, scrapResponses)
+		go asyncGetClipHTML(url, htmlResponses)
 	}
 	// Wait for the Responses from the scraper
 	fmt.Println("Waiting for Scraper to finish")
-	for response := range scrapResponses {
+	for response := range htmlResponses {
 		err := response.err
 		if err != nil {
-			close(scrapResponses)
+			close(htmlResponses)
 			return []string{}, err
 		}
-		clipSrcs = append(clipSrcs, response.value)
-		if len(clipSrcs) == desiredCount {
-			close(scrapResponses)
+		clipHTMLs = append(clipHTMLs, response.value)
+		if len(clipHTMLs) == desiredCount {
+			close(htmlResponses)
 		}
 	}
-	fmt.Println("Scraper finished")
-	return clipSrcs, nil
+	return clipHTMLs, nil
+}
 
+func getSrcsFromHTML(clipHTMLs []string) ([]string, error) {
+	clipSrcs := []string{}
+	for _, clipHTML := range clipHTMLs {
+		clipSrc, err := findVidSrcInHTML(clipHTML)
+		if err != nil {
+			return []string{}, err
+		}
+		clipSrcs = append(clipSrcs, clipSrc)
+	}
+	return clipSrcs, nil
 }

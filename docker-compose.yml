@@ -1,6 +1,6 @@
 version: '3'
 services:
-  sticher:
+  clipstitcher:
     build: ./clipstitcher
     volumes:
       - ./clipstitcher:/go/src/github.com/user/clipstitcher
