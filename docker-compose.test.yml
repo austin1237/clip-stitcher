@@ -1,0 +1,14 @@
+version: '3'
+services:
+  clipstitcher:
+    build: ./clipstitcher
+    command: 'go test -v ./...'
+    environment:
+      APP_ENV: test
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}
+      YOUTUBE_SECRET: ${YOUTUBE_SECRET}
+      YOUTUBE_ACCESS_TOKEN: ${YOUTUBE_ACCESS_TOKEN}
+      YOUTUBE_REFRESH_TOKEN: ${YOUTUBE_REFRESH_TOKEN}
+      YOUTUBE_EXPIRY: ${YOUTUBE_EXPIRY}

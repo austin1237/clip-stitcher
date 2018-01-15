@@ -77,7 +77,5 @@ func TestPickBestQualityRed(t *testing.T) {
 	mockClips := []clip{}
 	_, err := pickBestQuailty(mockClips)
 	assert.NotNil(t, err)
-	// Rather than testing err text should probably test against err type
 	assert.Equal(t, err.Error(), "clipSrc was not found in qualityOptions")
-
 }
