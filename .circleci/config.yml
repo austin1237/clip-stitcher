@@ -15,5 +15,5 @@ jobs:
           command: pip install docker-compose==1.12.0
       - run:
           name: Run tests
-          command: docker-compose run clipstitcher go test -v ./... 
+          command: docker-compose -f ./docker-compose.test.yml up --exit-code-from clipstitcher 
 
