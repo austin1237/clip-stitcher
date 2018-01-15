@@ -15,5 +15,45 @@ jobs:
           command: pip install docker-compose==1.12.0
       - run:
           name: Run tests
-          command: docker-compose -f ./docker-compose.test.yml up --exit-code-from clipstitcher 
+          command: docker-compose -f ./docker-compose.test.yml up --exit-code-from clipstitcher
+
+  package:
+    docker:
+      - image: docker:17.10.0-ce-git
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: install make
+          command: apk add --update make
+      - run:
+          name: Login into docker hub
+          command: echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+      - run: 
+          name: build image
+          command: |
+              if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                make build_prod
+              else
+                make build_dev
+              fi
+      - run:
+          name: push image to docker hub
+          command: make hub_push 
+
+workflows:
+  version: 2
+  build-package-and-deploy:
+    jobs:
+       - build
+
+       - package:
+          requires: 
+            - build
+          filters:
+            branches:
+              only: 
+                - master
+                - dev
 
