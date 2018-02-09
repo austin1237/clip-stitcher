@@ -92,6 +92,7 @@ func main() {
 	fmt.Println("starting ffmpeg")
 	ffmpegReader, err := stitcher.StitchClips(videoLinks)
 	logAndExit(err)
+	fmt.Println("starting upload")
 	uploader.Upload(ffmpegReader, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry)
 	elapsed := time.Since(start)
 	fmt.Println("exiting")

@@ -19,7 +19,7 @@ func buildFFmpegcommand(clipLinks []string) string {
 		streamOptions = streamOptions + "[" + iStr + ":v:0] [" + iStr + ":a:0] "
 	}
 	cmdString = "ffmpeg " + inputs + "-filter_complex \"" + streamOptions + "concat=n=" + strconv.Itoa(len(clipLinks)) + ":v=1:a=1 [v] [a]\" "
-	cmdString = cmdString + "-map [v] -map [a] -frag_duration 6000 -f mp4 -"
+	cmdString = cmdString + "-map [v] -map [a] -frag_duration 3600 -f mp4 -"
 	return cmdString
 }
 
@@ -32,7 +32,6 @@ func StitchClips(clipLinks []string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	err = ffmpeg.Start()
 	if err != nil {
 		fmt.Println("error starting " + cmd)
