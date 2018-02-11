@@ -1,8 +1,11 @@
 package uploader
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
-func Upload(clipLocation string, ytToken string, ytSecret string, ytAccess string, ytRefresh string, ytExpiriy time.Time) {
+func Upload(fileStream io.ReadCloser, ytToken string, ytSecret string, ytAccess string, ytRefresh string, ytExpiriy time.Time) {
 	authClient := getOAuthClient(ytToken, ytSecret, ytAccess, ytRefresh, ytExpiriy)
-	uploadToYouTube(clipLocation, authClient)
+	uploadToYouTube(fileStream, authClient)
 }
