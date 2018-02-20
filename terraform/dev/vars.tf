@@ -3,23 +3,23 @@
 # Define these secrets as environment variables
 # ---------------------------------------------------------------------------------------------------------------------
 
-# AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY
-# TF_VAR_TWITCH_CLIENT_ID
-# TF_VAR_TWITCH_CHANNEL_NAME
-# TF_VAR_YOUTUBE_CLIENT_ID
-# TF_VAR_YOUTUBE_SECRET
-# TF_VAR_YOUTUBE_ACCESS_TOKEN
-# TF_VAR_YOUTUBE_REFRESH_TOKEN
-# TF_VAR_YOUTUBE_EXPIRY
+# AWS_ACCESS_KEY_ID_DEV
+# AWS_SECRET_ACCESS_KEY_DEV
+# TF_VAR_TWITCH_CLIENT_ID_DEV
+# TF_VAR_TWITCH_CHANNEL_NAME_DEV
+# TF_VAR_YOUTUBE_CLIENT_ID_DEV
+# TF_VAR_YOUTUBE_SECRET_DEV
+# TF_VAR_YOUTUBE_ACCESS_TOKEN_DEV
+# TF_VAR_YOUTUBE_REFRESH_TOKEN_DEV
+# TF_VAR_YOUTUBE_EXPIRY_DEV
 
-variable "TWITCH_CLIENT_ID" {}
-variable "TWITCH_CHANNEL_NAME" {}
-variable "YOUTUBE_CLIENT_ID" {}
-variable "YOUTUBE_SECRET" {}
-variable "YOUTUBE_ACCESS_TOKEN" {}
-variable "YOUTUBE_REFRESH_TOKEN" {}
-variable "YOUTUBE_EXPIRY" {}
+variable "TWITCH_CLIENT_ID_DEV" {}
+variable "TWITCH_CHANNEL_NAME_DEV" {}
+variable "YOUTUBE_CLIENT_ID_DEV" {}
+variable "YOUTUBE_SECRET_DEV" {}
+variable "YOUTUBE_ACCESS_TOKEN_DEV" {}
+variable "YOUTUBE_REFRESH_TOKEN_DEV" {}
+variable "YOUTUBE_EXPIRY_DEV" {}
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.

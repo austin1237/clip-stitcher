@@ -42,7 +42,7 @@ resource "aws_route_table" "public_routetable" {
   }
 
   tags {
-    label = "clipstitcher"
+    label = "clipstitcher-public_routetable"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_route_table" "private_routetable" {
   }
 
   tags {
-    label = "blog"
+    label = "clipstitcher-private_routetable"
   }
 }
 

@@ -17,11 +17,11 @@ RUN go get "github.com/stretchr/testify"
 
 RUN go install .
 
-CMD if [ ${APP_ENV} != dev ]; \
+CMD if [ ${APP_ENV} == local ]; \
 	then \
-	clipstitcher; \
-	else \
-    dep ensure && \
+	dep ensure && \
 	go get github.com/pilu/fresh && \
 	fresh; \
+	else \
+    clipstitcher; \
 	fi

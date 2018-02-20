@@ -24,7 +24,7 @@ provider "aws" {
 
 module "vpc" {
   source = "./vpc"
-  name = "clipsticher-${var.env}"
+  name = "clipstitcher-${var.env}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -34,19 +34,27 @@ module "vpc" {
 module "clipstitcher" {
   source = "./fargate-worker"
 
-  name = "clipsticher-${var.env}"
+  name = "clipstitcher-${var.env}"
   subnet_id = "${module.vpc.private_subnet_id}"
 
   image = "${var.docker_image}"
   docker_version = "${var.docker_version}"
-  cpu = 256
-  memory = 512
-  desired_count = 1
+  cpu = 1024
+  memory = 2048
+  desired_count = 0
   
   num_env_vars = 8
-  env_vars = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME}", "YOUTUBE_CLIENT_ID", "${var.YOUTUBE_CLIENT_ID}", "YOUTUBE_SECRET", "${var.YOUTUBE_SECRET}", "YOUTUBE_ACCESS_TOKEN", "${var.YOUTUBE_ACCESS_TOKEN}", "YOUTUBE_REFRESH_TOKEN", "${var.YOUTUBE_REFRESH_TOKEN}", "YOUTUBE_EXPIRY", "${var.YOUTUBE_EXPIRY}", "APP_ENV","${var.env}")}"
+  env_vars = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID_DEV}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME_DEV}", "YOUTUBE_CLIENT_ID", "${var.YOUTUBE_CLIENT_ID_DEV}", "YOUTUBE_SECRET", "${var.YOUTUBE_SECRET_DEV}", "YOUTUBE_ACCESS_TOKEN", "${var.YOUTUBE_ACCESS_TOKEN_DEV}", "YOUTUBE_REFRESH_TOKEN", "${var.YOUTUBE_REFRESH_TOKEN_DEV}", "YOUTUBE_EXPIRY", "${var.YOUTUBE_EXPIRY_DEV}", "APP_ENV","${var.env}")}"
 }
 
 
-
-
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE Lambda that will run the fargate worker
+# ---------------------------------------------------------------------------------------------------------------------
+module "fargate-runner" {
+  source = "./fargate-runner"
+  cluster_arn = "${module.clipstitcher.cluster_arn}"
+  task_arn = "${module.clipstitcher.task_arn}"
+  name = "fargate-runner-${var.env}"
+  subnet_id = "${module.vpc.private_subnet_id}"
+}
