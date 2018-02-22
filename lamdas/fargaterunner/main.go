@@ -39,10 +39,12 @@ func main() {
 
 func HandleRequest(ctx context.Context) (string, error) {
 	launchType := "FARGATE"
+	assignPublicIP := "ENABLED"
 	sess := session.Must(session.NewSession())
 	ecsClient := ecs.New(sess)
 	vpcConfig := ecs.AwsVpcConfiguration{
-		Subnets: []*string{&subnetId},
+		Subnets:        []*string{&subnetId},
+		AssignPublicIp: &assignPublicIP,
 	}
 	networkConfig := ecs.NetworkConfiguration{
 		AwsvpcConfiguration: &vpcConfig,

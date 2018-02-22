@@ -15,6 +15,7 @@ terraform {
 }
 
 provider "aws" {
+  version = "1.9"
   region = "${var.region}"
 }
 
@@ -35,7 +36,7 @@ module "clipstitcher" {
   source = "./fargate-worker"
 
   name = "clipstitcher-${var.env}"
-  subnet_id = "${module.vpc.private_subnet_id}"
+  subnet_id = "${module.vpc.subnet_id}"
 
   image = "${var.docker_image}"
   docker_version = "${var.docker_version}"
@@ -56,5 +57,5 @@ module "fargate-runner" {
   cluster_arn = "${module.clipstitcher.cluster_arn}"
   task_arn = "${module.clipstitcher.task_arn}"
   name = "fargate-runner-${var.env}"
-  subnet_id = "${module.vpc.private_subnet_id}"
+  subnet_id = "${module.vpc.subnet_id}"
 }

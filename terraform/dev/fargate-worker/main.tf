@@ -32,6 +32,7 @@ resource "aws_ecs_service" "service" {
   desired_count = "${var.desired_count}"
   network_configuration = [
       {
+          assign_public_ip = true,
           subnets = ["${var.subnet_id}"]
       },
    ]
