@@ -1,0 +1,7 @@
+version: '3'
+services:
+  lamdas:
+    build: ./lamdas
+    command: bash -c 'dep ensure && go build main.go && zip fargaterunner ./main && rm main'
+    volumes:
+      - ./lamdas/fargaterunner:/go/src/github.com/user/fargaterunner
