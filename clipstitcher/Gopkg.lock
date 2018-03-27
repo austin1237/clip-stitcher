@@ -2,16 +2,28 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  revision = "4b98a6370e36d7a85192e7bad08a4ebd82eac2a8"
+  version = "v0.20.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
+  packages = ["spew","spew/testdata"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  packages = ["descriptor","jsonpb/jsonpb_test_proto","proto","proto/proto3_proto","proto/testdata","protoc-gen-go/descriptor","protoc-gen-go/generator","protoc-gen-go/grpc","protoc-gen-go/plugin","ptypes","ptypes/any","ptypes/duration","ptypes/struct","ptypes/timestamp","ptypes/wrappers"]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+
+[[projects]]
+  name = "github.com/google/go-cmp"
+  packages = ["cmp","cmp/internal/diff","cmp/internal/function","cmp/internal/value"]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -20,38 +32,86 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
+  version = "v0.1"
+
+[[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = ["assert","http","mock","require"]
   revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
   version = "v1.2.0"
 
 [[projects]]
   branch = "master"
+  name = "go4.org"
+  packages = ["syncutil/singleflight"]
+  revision = "e6a7f04a962e05f288f348eec6de20fe93b6b292"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["acme","acme/autocert","ssh/terminal"]
+  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp"]
+  packages = ["context","context/ctxhttp","dns/dnsmessage","http/httpproxy","http2","http2/hpack","idna","internal/nettest","internal/timeseries","lex/httplex","trace"]
   revision = "a8b9294777976932365dabb6640cf1468d95c70f"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/oauth2"
-  packages = [".","internal"]
+  packages = [".","google","internal","jws","jwt"]
   revision = "197281d4e0ecd78c33865daf9c6e51626feefcb2"
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["errgroup","semaphore"]
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix","windows"]
+  revision = "13d03a9a82fba647c21a0ef8fba44a795d0f0835"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
+
+[[projects]]
+  branch = "master"
   name = "google.golang.org/api"
-  packages = ["gensupport","googleapi","googleapi/internal/uritemplates","youtube/v3"]
+  packages = ["bigquery/v2","books/v1","calendar/v3","cloudresourcemanager/v1","compute/v1","dfareporting/v2.7","drive/v2","fitness/v1","gensupport","gmail/v1","google-api-go-generator/internal/disco","googleapi","googleapi/internal/uritemplates","googleapi/transport","internal","iterator","iterator/testing","mirror/v1","monitoring/v3","option","prediction/v1.6","pubsub/v1beta2","storage/v1","tasks/v1","transport/bytestream/internal","transport/grpc","transport/http","urlshortener/v1","youtube/v3"]
   revision = "272e2963aad1a56aba54e1167c47abff8d37ac08"
 
 [[projects]]
   name = "google.golang.org/appengine"
-  packages = ["internal","internal/base","internal/datastore","internal/log","internal/remote_api","internal/urlfetch","urlfetch"]
+  packages = [".","datastore","internal","internal/app_identity","internal/base","internal/datastore","internal/log","internal/memcache","internal/modules","internal/remote_api","internal/socket","internal/urlfetch","internal/user","log","memcache","socket","urlfetch","user"]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/api/annotations","googleapis/bytestream","googleapis/rpc/status"]
+  revision = "ab0870e398d5dd054b868c0db1481ab029b9a9f2"
+
+[[projects]]
+  name = "google.golang.org/grpc"
+  packages = [".","balancer","balancer/base","balancer/roundrobin","codes","connectivity","credentials","credentials/oauth","encoding","encoding/proto","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","resolver","resolver/dns","resolver/passthrough","stats","status","tap","transport"]
+  revision = "8e4536a86ab602859c20df5ebfd0bd4228d08655"
+  version = "v1.10.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6b2cde2b0de9c8c08b542aca3ded10c87950b6755172f7b82d50f51bf8c39066"
+  inputs-digest = "260793dd0a8ce6a3b9de608b81567b247972c426833bb890ad92d25ed54155f4"
   solver-name = "gps-cdcl"
   solver-version = 1
