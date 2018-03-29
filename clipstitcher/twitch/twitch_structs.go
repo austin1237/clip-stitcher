@@ -6,10 +6,17 @@ type clip struct {
 	FrameRate float32 `json:"frame_rate"`
 }
 
-type twitchResponseUrls struct {
+type twitchClips struct {
 	Clips []struct {
-		URL string `json:"url"`
+		URL      string  `json:"url"`
+		Duration float64 `json:"duration"`
+		Title    string  `json:"title"`
 	} `json:"clips"`
+}
+
+type PreparedClips struct {
+	VideoLinks       []string
+	VideoDescription string
 }
 
 type asyncString struct {

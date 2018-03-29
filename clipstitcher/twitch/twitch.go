@@ -2,6 +2,7 @@ package twitch
 
 import (
 	"fmt"
+	"time"
 )
 
 type TwitchService struct {
@@ -18,17 +19,46 @@ func NewTwitchService(name string, count int, id string) *TwitchService {
 	return service
 }
 
-func (tService TwitchService) GetVideoLinks() ([]string, error) {
-	pageUrls, err := getClipPageUrls(tService.streamName, tService.desiredCount, tService.clientID)
+func (tService TwitchService) GetClips() (PreparedClips, error) {
+	preparedClips := PreparedClips{}
+	tclips, err := getClips(tService.streamName, tService.desiredCount, tService.clientID)
+	pageURLs := make([]string, 0)
 	if err != nil {
-		return []string{}, err
+		return preparedClips, err
 	}
-	clipHTMLS, err := getClipHTML(pageUrls)
+
+	for _, clip := range tclips.Clips {
+		pageURLs = append(pageURLs, clip.URL)
+	}
+
+	clipHTMLS, err := getClipHTML(pageURLs)
 	if err != nil {
-		return []string{}, err
+		return preparedClips, err
 	}
 	clipSrcs, err := getSrcsFromHTML(clipHTMLS)
-	return clipSrcs, err
+	if err != nil {
+		return preparedClips, err
+	}
+	preparedClips.VideoLinks = clipSrcs
+	preparedClips.VideoDescription = generateDescription(tclips)
+	return preparedClips, err
+}
+
+func generateDescription(clips twitchClips) string {
+	description := ""
+	duration := 0.00
+	startTime := time.Date(1970, time.January, 1, 8, 0, 0, 0, time.UTC)
+	endTime := time.Date(1970, time.January, 1, 8, 0, 0, 0, time.UTC)
+	for _, clip := range clips.Clips {
+		line := fmt.Sprintf("%v %v \n", clip.Title, clip.URL)
+		description = description + line
+		duration += clip.Duration
+		endTime = endTime.Add(time.Second * time.Duration(clip.Duration))
+	}
+
+	duration = endTime.Sub(startTime).Minutes()
+	description = description + fmt.Sprintf("Total lengh of the video should be %v long", duration)
+	return description
 }
 
 func getClipHTML(clipUrls []string) ([]string, error) {

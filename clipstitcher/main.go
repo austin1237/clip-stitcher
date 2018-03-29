@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/user/clipstitcher/stitcher"
@@ -85,17 +86,17 @@ func init() {
 func main() {
 	fmt.Println("clip sticher started")
 	start := time.Now()
-	twitchService := twitch.NewTwitchService("drdisrespectlive", 10, twitchClientID)
-	videoLinks, err := twitchService.GetVideoLinks()
+	twitchService := twitch.NewTwitchService(twitchChannelName, 10, twitchClientID)
+	preparedClips, err := twitchService.GetClips()
 	logAndExit(err)
-	fmt.Println("videoLinks in main", videoLinks)
 	fmt.Println("starting ffmpeg")
-	ffmpegReader, err := stitcher.StitchClips(videoLinks)
+	ffmpegReader, err := stitcher.StitchClips(preparedClips.VideoLinks)
 	logAndExit(err)
 	fmt.Println("starting upload")
-	uploader.Upload(ffmpegReader, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry)
+	uploader.Upload(ffmpegReader, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry, preparedClips.VideoDescription, twitchChannelName)
 	elapsed := time.Since(start)
-	fmt.Println("exiting")
+	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
+	fmt.Println(sitcherOutput)
 	log.Printf("total execution time took %s", elapsed)
 	os.Exit(0)
 }

@@ -1,11 +1,15 @@
 package stitcher
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"os/exec"
 	"strconv"
 )
+
+var Logs []byte
 
 // Here's a blog where I found the ffmpeg command to combine videos with a transcode
 //http://www.bugcodemaster.com/article/concatenate-videos-using-ffmpeg
@@ -24,14 +28,19 @@ func buildFFmpegcommand(clipLinks []string) string {
 }
 
 func StitchClips(clipLinks []string) (io.ReadCloser, error) {
-
 	cmd := buildFFmpegcommand(clipLinks)
+	log.Println(cmd)
 	ffmpeg := exec.Command("bash", "-c", cmd)
 
 	fileStream, err := ffmpeg.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
+	logs, err := ffmpeg.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+	go keepsLogsInMemory(logs)
 	err = ffmpeg.Start()
 	if err != nil {
 		fmt.Println("error starting " + cmd)
@@ -40,4 +49,10 @@ func StitchClips(clipLinks []string) (io.ReadCloser, error) {
 
 	return fileStream, nil
 
+}
+
+func keepsLogsInMemory(stdErr io.ReadCloser) {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stdErr)
+	Logs = buf.Bytes()
 }
