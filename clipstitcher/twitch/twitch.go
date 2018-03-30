@@ -22,10 +22,11 @@ func NewTwitchService(name string, count int, id string) *TwitchService {
 func (tService TwitchService) GetClips() (PreparedClips, error) {
 	preparedClips := PreparedClips{}
 	tclips, err := getClips(tService.streamName, tService.desiredCount, tService.clientID)
-	pageURLs := make([]string, 0)
 	if err != nil {
 		return preparedClips, err
 	}
+	tclips = filterOutOverlap(tclips)
+	pageURLs := make([]string, 0)
 
 	for _, clip := range tclips.Clips {
 		pageURLs = append(pageURLs, clip.URL)

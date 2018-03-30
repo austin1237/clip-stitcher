@@ -1,5 +1,7 @@
 package twitch
 
+import "time"
+
 type clip struct {
 	Quality   string  `json:"quality"`
 	Source    string  `json:"source"`
@@ -11,7 +13,22 @@ type twitchClips struct {
 		URL      string  `json:"url"`
 		Duration float64 `json:"duration"`
 		Title    string  `json:"title"`
+		Vod      struct {
+			ID  int    `json:"id"`
+			URL string `json:"url"`
+		} `json:"vod"`
 	} `json:"clips"`
+}
+
+type clipDuration struct {
+	StartTime time.Time
+	EndTime   time.Time
+}
+
+type clipTime struct {
+	Hours   int
+	Minutes int
+	Seconds int
 }
 
 type PreparedClips struct {
