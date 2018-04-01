@@ -4,19 +4,46 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 )
 
-func filterOutOverlap(clips twitchClips) twitchClips {
-	return clips
+func filterOutOverlap(clips twitchAPIResp) (twitchAPIResp, error) {
+	var finishedClips twitchAPIResp
+	overlapMap := make(map[int][]overlap)
+	for _, clip := range clips.Clips {
+		cTime, err := getTimeFromURL(clip.Vod.URL)
+		if err != nil {
+			return finishedClips, err
+		}
+		cDuration := getDurationFromTime(cTime, clip.Duration)
+		tOverlap := overlap{
+			VodID:     clip.Vod.ID,
+			StartTime: cDuration.StartTime,
+			EndTime:   cDuration.EndTime,
+		}
+
+		if !isClipOverlaping(overlapMap, tOverlap) && len(finishedClips.Clips) <= 10 {
+			overlapMap[clip.Vod.ID] = append(overlapMap[clip.Vod.ID], tOverlap)
+			finishedClips.Clips = append(finishedClips.Clips, clip)
+		}
+	}
+	return finishedClips, nil
 }
 
-// func loopsThroughClips(clips twitchClips) {
-// 	clipMap := make(map[int][]clipTime)
-// 	for _, clip := range clips.Clips {
-// 		clipMap[clip.Vod.ID] = clip
+// Determine if clip is overlaping here
+func isClipOverlaping(clipMap map[int][]overlap, tOverlap overlap) bool {
+	return false
+}
 
-// 	}
-// }
+func getDurationFromTime(cTime clipTime, duration float64) clipDuration {
+	var cDuration clipDuration
+	startTime := time.Date(1970, time.January, 1, 8, 0, 0, 0, time.UTC)
+	startTime = startTime.Add(time.Hour*time.Duration(cTime.Hours) + time.Minute*time.Duration(cTime.Minutes) + time.Second*time.Duration(cTime.Seconds))
+	endTime := startTime.Add(time.Second * time.Duration(duration))
+	cDuration.StartTime = startTime
+	cDuration.EndTime = endTime
+	return cDuration
+}
 
 func getTimeFromURL(url string) (clipTime, error) {
 	var cTime clipTime

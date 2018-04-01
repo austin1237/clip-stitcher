@@ -25,7 +25,12 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 	if err != nil {
 		return preparedClips, err
 	}
-	tclips = filterOutOverlap(tclips)
+	tclips, err = filterOutOverlap(tclips)
+
+	if err != nil {
+		return preparedClips, err
+	}
+
 	pageURLs := make([]string, 0)
 
 	for _, clip := range tclips.Clips {
@@ -45,7 +50,7 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 	return preparedClips, err
 }
 
-func generateDescription(clips twitchClips) string {
+func generateDescription(clips twitchAPIResp) string {
 	description := ""
 	duration := 0.00
 	startTime := time.Date(1970, time.January, 1, 8, 0, 0, 0, time.UTC)

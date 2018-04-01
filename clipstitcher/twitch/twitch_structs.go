@@ -8,16 +8,18 @@ type clip struct {
 	FrameRate float32 `json:"frame_rate"`
 }
 
-type twitchClips struct {
-	Clips []struct {
-		URL      string  `json:"url"`
-		Duration float64 `json:"duration"`
-		Title    string  `json:"title"`
-		Vod      struct {
-			ID  int    `json:"id"`
-			URL string `json:"url"`
-		} `json:"vod"`
-	} `json:"clips"`
+type twitchClip struct {
+	URL      string  `json:"url"`
+	Duration float64 `json:"duration"`
+	Title    string  `json:"title"`
+	Vod      struct {
+		ID  int    `json:"id"`
+		URL string `json:"url"`
+	} `json:"vod"`
+}
+
+type twitchAPIResp struct {
+	Clips []twitchClip `json:"clips"`
 }
 
 type clipDuration struct {
@@ -29,6 +31,13 @@ type clipTime struct {
 	Hours   int
 	Minutes int
 	Seconds int
+}
+
+type overlap struct {
+	URL       string
+	VodID     int
+	StartTime time.Time
+	EndTime   time.Time
 }
 
 type PreparedClips struct {
