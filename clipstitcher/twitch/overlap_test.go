@@ -6,12 +6,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTimeFromURL(t *testing.T) {
+func TestGetTimeFromURLFromHour(t *testing.T) {
 	testURL := "https://www.twitch.tv/videos/240497733?t=2h11m40s"
 	cTime, err := getTimeFromURL(testURL)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, cTime.Hours)
 	assert.Equal(t, 11, cTime.Minutes)
+	assert.Equal(t, 40, cTime.Seconds)
+}
+
+func TestGetTimeFromURLFromMinute(t *testing.T) {
+	testURL := "https://www.twitch.tv/videos/240497733?t=11m40s"
+	cTime, err := getTimeFromURL(testURL)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, cTime.Hours)
+	assert.Equal(t, 11, cTime.Minutes)
+	assert.Equal(t, 40, cTime.Seconds)
+}
+
+func TestGetTimeFromURLFromSecond(t *testing.T) {
+	testURL := "https://www.twitch.tv/videos/240497733?t=40s"
+	cTime, err := getTimeFromURL(testURL)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, cTime.Hours)
+	assert.Equal(t, 0, cTime.Minutes)
 	assert.Equal(t, 40, cTime.Seconds)
 }
 

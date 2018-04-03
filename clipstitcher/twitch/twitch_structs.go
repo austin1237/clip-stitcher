@@ -13,7 +13,7 @@ type twitchClip struct {
 	Duration float64 `json:"duration"`
 	Title    string  `json:"title"`
 	Vod      struct {
-		ID  int    `json:"id"`
+		ID  string `json:"id"`
 		URL string `json:"url"`
 	} `json:"vod"`
 }
@@ -33,9 +33,9 @@ type clipTime struct {
 	Seconds int
 }
 
-type overlap struct {
+type twitchDuration struct {
 	URL       string
-	VodID     int
+	VodID     string
 	StartTime time.Time
 	EndTime   time.Time
 }

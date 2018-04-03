@@ -2,6 +2,7 @@ package twitch
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -9,20 +10,20 @@ import (
 
 func filterOutOverlap(clips twitchAPIResp) (twitchAPIResp, error) {
 	var finishedClips twitchAPIResp
-	overlapMap := make(map[int][]overlap)
+	overlapMap := make(map[string][]twitchDuration)
 	for _, clip := range clips.Clips {
 		cTime, err := getTimeFromURL(clip.Vod.URL)
 		if err != nil {
 			return finishedClips, err
 		}
 		cDuration := getDurationFromTime(cTime, clip.Duration)
-		tOverlap := overlap{
+		tOverlap := twitchDuration{
 			VodID:     clip.Vod.ID,
 			StartTime: cDuration.StartTime,
 			EndTime:   cDuration.EndTime,
 		}
 
-		if !isClipOverlaping(overlapMap, tOverlap) && len(finishedClips.Clips) <= 10 {
+		if !isClipOverlaping(overlapMap[clip.Vod.ID], tOverlap) && len(finishedClips.Clips) <= 10 {
 			overlapMap[clip.Vod.ID] = append(overlapMap[clip.Vod.ID], tOverlap)
 			finishedClips.Clips = append(finishedClips.Clips, clip)
 		}
@@ -31,7 +32,21 @@ func filterOutOverlap(clips twitchAPIResp) (twitchAPIResp, error) {
 }
 
 // Determine if clip is overlaping here
-func isClipOverlaping(clipMap map[int][]overlap, tOverlap overlap) bool {
+func isClipOverlaping(checkedDurations []twitchDuration, newDuration twitchDuration) bool {
+	for _, checkedDuration := range checkedDurations {
+		newStart := newDuration.StartTime
+		newEnd := newDuration.EndTime
+		oldStart := checkedDuration.StartTime
+		oldEnd := checkedDuration.EndTime
+		startDifference := oldStart.Sub(newEnd).Seconds()
+		endDifference := oldEnd.Sub(newStart).Seconds()
+
+		// https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+		// (StartA <= EndB) && (EndA >= StartB)
+		if startDifference <= 0 && endDifference >= 0 {
+			return true
+		}
+	}
 	return false
 }
 
@@ -47,26 +62,37 @@ func getDurationFromTime(cTime clipTime, duration float64) clipDuration {
 
 func getTimeFromURL(url string) (clipTime, error) {
 	var cTime clipTime
+	fmt.Println(url)
 	timeStr := strings.Split(url, "=")[1]
-	hourStr := strings.Split(timeStr, "h")[0]
-	timeStr = strings.Split(timeStr, "h")[1]
-	minuteStr := strings.Split(timeStr, "m")[0]
-	timeStr = strings.Split(timeStr, "m")[1]
-	secondsStr := strings.Split(timeStr, "s")[0]
-	hours, err := strconv.Atoi(hourStr)
-	if err != nil {
-		return cTime, errors.New("invalid hours found in vod url")
+
+	if len(strings.Split(timeStr, "h")) == 2 {
+		hourStr := strings.Split(timeStr, "h")[0]
+		timeStr = strings.Split(timeStr, "h")[1]
+		hours, err := strconv.Atoi(hourStr)
+		if err != nil {
+			return cTime, errors.New("invalid hours found in vod url")
+		}
+		cTime.Hours = hours
 	}
-	minutes, err := strconv.Atoi(minuteStr)
-	if err != nil {
-		return cTime, errors.New("invalid minutes found in vod url")
+
+	if len(strings.Split(timeStr, "m")) == 2 {
+		minuteStr := strings.Split(timeStr, "m")[0]
+		timeStr = strings.Split(timeStr, "m")[1]
+		minutes, err := strconv.Atoi(minuteStr)
+		if err != nil {
+			return cTime, errors.New("invalid minutes found in vod url")
+		}
+		cTime.Minutes = minutes
 	}
-	seconds, err := strconv.Atoi(secondsStr)
-	if err != nil {
-		return cTime, errors.New("invalid seconds found in vod url")
+
+	if len(strings.Split(timeStr, "s")) == 2 {
+		secondsStr := strings.Split(timeStr, "s")[0]
+		seconds, err := strconv.Atoi(secondsStr)
+		if err != nil {
+			return cTime, errors.New("invalid seconds found in vod url")
+		}
+		cTime.Seconds = seconds
 	}
-	cTime.Seconds = seconds
-	cTime.Minutes = minutes
-	cTime.Hours = hours
+
 	return cTime, nil
 }
