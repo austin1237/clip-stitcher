@@ -1,26 +1,29 @@
 resource "aws_iam_role_policy" "lamda_role_policy" {
-  name = "lamda_role_policy"
-  role = "${aws_iam_role.iam_for_lambda.id}"
+  name   = "lamda_role_policy"
+  role   = "${aws_iam_role.iam_for_lambda.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
   statement {
-    effect = "Allow"
+    effect    = "Allow"
     resources = ["*"]
+
     actions = [
       "ecs:RunTask",
     ]
   }
+
   statement {
-    actions =["iam:PassRole"]
-    effect = "Allow"
+    actions   = ["iam:PassRole"]
+    effect    = "Allow"
     resources = ["*"]
-     condition {
+
+    condition {
       test     = "StringLike"
       variable = "iam:PassedToService"
-      values = ["ecs-tasks.amazonaws.com"]
-    }      
+      values   = ["ecs-tasks.amazonaws.com"]
+    }
   }
 }
 
@@ -62,9 +65,30 @@ resource "aws_lambda_function" "test_lambda" {
 
   environment {
     variables = {
-      TASK_ARN = "${var.task_arn}"
+      TASK_ARN    = "${var.task_arn}"
       CLUSTER_ARN = "${var.cluster_arn}"
-      SUBNET_ID = "${var.subnet_id}"
+      SUBNET_ID   = "${var.subnet_id}"
     }
   }
+}
+
+#10 am utc
+resource "aws_cloudwatch_event_rule" "once_a_day" {
+  name                = "once_a_day"
+  description         = "Fires off the clipstitcher once a day"
+  schedule_expression = "cron(0 10 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "check_foo_once_a_day" {
+  rule      = "${aws_cloudwatch_event_rule.once_a_day.name}"
+  target_id = "test_lambda"
+  arn       = "${aws_lambda_function.test_lambda.arn}"
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_foo" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.test_lambda.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.once_a_day.arn}"
 }
