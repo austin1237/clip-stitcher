@@ -60,7 +60,7 @@ resource "aws_lambda_function" "test_lambda" {
   function_name    = "${var.name}"
   role             = "${aws_iam_role.iam_for_lambda.arn}"
   handler          = "main"
-  source_code_hash = "${base64sha256(file("../../lamdas/fargaterunner/fargaterunner.zip"))}"
+  source_code_hash = "${base64sha256(file("../../lambdas/fargaterunner/fargaterunner.zip"))}"
   runtime          = "go1.x"
 
   environment {
@@ -72,17 +72,16 @@ resource "aws_lambda_function" "test_lambda" {
   }
 }
 
-#10 am utc
+#5:30 utc
 resource "aws_cloudwatch_event_rule" "once_a_day" {
   name                = "once_a_day"
   description         = "Fires off the clipstitcher once a day"
-  schedule_expression = "cron(0 10 * * ? *)"
+  schedule_expression = "cron(30 5 * * ? *)"
 }
 
-resource "aws_cloudwatch_event_target" "check_foo_once_a_day" {
-  rule      = "${aws_cloudwatch_event_rule.once_a_day.name}"
-  target_id = "test_lambda"
-  arn       = "${aws_lambda_function.test_lambda.arn}"
+resource "aws_cloudwatch_event_target" "check_once_a_day" {
+  rule = "${aws_cloudwatch_event_rule.once_a_day.name}"
+  arn  = "${aws_lambda_function.test_lambda.arn}"
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_foo" {
