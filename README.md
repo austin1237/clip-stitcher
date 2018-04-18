@@ -6,7 +6,7 @@ You must have the following installed/configured for this to work correctly<br /
 2. [Docker-Compose](https://docs.docker.com/compose/)
 
 
-##clipstitcher
+## clipstitcher
 ### Development Environment
 To spin up the development environment run the following command from the root level of this repo.
 
@@ -14,7 +14,7 @@ To spin up the development environment run the following command from the root l
 docker-compose -f clipstitcher-compose.yml up
 ```
 
-##lambdas
+## lambdas
 ### Development Environment
 To spin up the development environment run the following command from the root level of this repo.
 
