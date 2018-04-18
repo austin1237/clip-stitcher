@@ -7,11 +7,11 @@ terraform {
   required_version = "> 0.11.0"
 
   backend "s3" {
-    bucket         = "austin1237-clipstitcher-state-dev"
+    bucket         = "austin1237-clipstitcher-state-prod"
     key            = "global/s3/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = "true"
-    dynamodb_table = "clipstitcher-state-lock-dev"
+    dynamodb_table = "clipstitcher-state-lock-prod"
   }
 }
 
