@@ -55,9 +55,9 @@ jobs:
           name: deploy with terraform
           command: |
                 if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                  make deploy_prod
+                  cd terraform && make deploy_prod
                 else
-                  make deploy_dev
+                  cd terraform && make deploy_dev
                 fi
     
 
