@@ -33,7 +33,7 @@ This project **requires** this feature to be configured. To configure **USE THE 
 docker-compose -f terraform-compose.yml run tf init_remote_state
 ```
 
-###Deployment
+### Deployment
 The following commands will deploy to dev/prod respectively.
 ```bash
 docker-compose -f terraform-compose.yml run tf deploy_dev
