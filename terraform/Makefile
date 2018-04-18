@@ -30,12 +30,12 @@ plan_prod:
 release_lock_prod:
 	cd prod && terraform force-unlock $(lockID) 
 
-.PHONY: init_terraform_remote_state
-init_terraform_remote_state:
+.PHONY: init_remote_state
+init_remote_state:
 	cd dev/remote-state && terraform init -input=false
 	cd dev/remote-state && terraform apply -input=false -auto-approve
-	echo "dev storage deployed"
+	echo "dev remote state deployed"
 	cd prod/remote-state && terraform init -input=false
 	cd prod/remote-state && terraform apply -input=false -auto-approve
-	echo "prod storage deployed"
-	echo "terraform remote state management can now be used"
+	echo "prod remote state deployed"
+	echo "terraform remote state setup complete"
