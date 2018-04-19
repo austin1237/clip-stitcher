@@ -46,7 +46,7 @@ module "clipstitcher" {
   desired_count  = 0
 
   num_env_vars = 8
-  env_vars     = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID_DEV}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME_DEV}", "YOUTUBE_CLIENT_ID", "${var.YOUTUBE_CLIENT_ID_DEV}", "YOUTUBE_SECRET", "${var.YOUTUBE_SECRET_DEV}", "YOUTUBE_ACCESS_TOKEN", "${var.YOUTUBE_ACCESS_TOKEN_DEV}", "YOUTUBE_REFRESH_TOKEN", "${var.YOUTUBE_REFRESH_TOKEN_DEV}", "YOUTUBE_EXPIRY", "${var.YOUTUBE_EXPIRY_DEV}", "APP_ENV","${var.env}")}"
+  env_vars     = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID_PROD}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME_PROD}", "YOUTUBE_CLIENT_ID", "${var.YOUTUBE_CLIENT_ID_PROD}", "YOUTUBE_SECRET", "${var.YOUTUBE_SECRET_PROD}", "YOUTUBE_ACCESS_TOKEN", "${var.YOUTUBE_ACCESS_TOKEN_PROD}", "YOUTUBE_REFRESH_TOKEN", "${var.YOUTUBE_REFRESH_TOKEN_PROD}", "YOUTUBE_EXPIRY", "${var.YOUTUBE_EXPIRY_PROD}", "APP_ENV","${var.env}")}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
