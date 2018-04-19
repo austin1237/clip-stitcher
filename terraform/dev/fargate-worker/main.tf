@@ -2,11 +2,11 @@
 # CREATE A CLOUDWATCH LOG GROUP FOR ECS TASKS TO SEND LOGS TO
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name = "clip_stitcher_logs"
+  name = "${var.name}"
 }
 
 resource "aws_cloudwatch_log_stream" "ecs_logs_stream" {
-  name           = "clip_stitcher_logs_stream"
+  name           = "${var.name}-logs-stream"
   log_group_name = "${aws_cloudwatch_log_group.ecs_logs.name}"
 }
 
@@ -22,36 +22,33 @@ resource "aws_ecs_cluster" "cluster" {
 # CREATE AN ECS SERVICE TO RUN A ECS TASK
 # ---------------------------------------------------------------------------------------------------------------------
 
-
-
 resource "aws_ecs_service" "service" {
-  launch_type = "FARGATE"
-  name = "${var.name}"
-  cluster = "${aws_ecs_cluster.cluster.id}"
+  launch_type     = "FARGATE"
+  name            = "${var.name}"
+  cluster         = "${aws_ecs_cluster.cluster.id}"
   task_definition = "${aws_ecs_task_definition.task.arn}"
-  desired_count = "${var.desired_count}"
-  network_configuration = [
-      {
-          assign_public_ip = true,
-          subnets = ["${var.subnet_id}"]
-      },
-   ]
-}
+  desired_count   = "${var.desired_count}"
 
+  network_configuration = [
+    {
+      assign_public_ip = true
+      subnets          = ["${var.subnet_id}"]
+    },
+  ]
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN ECS TASK TO RUN A DOCKER CONTAINER
 # ---------------------------------------------------------------------------------------------------------------------
 
-
-
 resource "aws_ecs_task_definition" "task" {
-  family = "${var.name}"
-  memory = "${var.memory}"
-  cpu = "${var.cpu}"
-  network_mode = "awsvpc"
-  execution_role_arn = "${aws_iam_role.task_role.arn}"
+  family                   = "${var.name}"
+  memory                   = "${var.memory}"
+  cpu                      = "${var.cpu}"
+  network_mode             = "awsvpc"
+  execution_role_arn       = "${aws_iam_role.task_role.arn}"
   requires_compatibilities = ["FARGATE"]
+
   container_definitions = <<EOF
   [
     {
@@ -81,11 +78,11 @@ resource "aws_ecs_task_definition" "task" {
 #
 data "template_file" "env_vars" {
   count = "${var.num_env_vars}"
+
   template = <<EOF
 {"name": "${element(keys(var.env_vars), count.index)}", "value": "${lookup(var.env_vars, element(keys(var.env_vars), count.index))}"}
 EOF
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ATTACH IAM PERMISSIONS TO THE IAM ROLE
@@ -93,53 +90,58 @@ EOF
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "task_role_policy" {
-  name = "task_role_policy"
-  role = "${aws_iam_role.task_role.id}"
+  name   = "task_role_policy"
+  role   = "${aws_iam_role.task_role.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
   statement {
-    effect = "Allow"
+    effect    = "Allow"
     resources = ["*"]
+
     actions = [
       "cloudwatch:*",
       "logs:*",
       "ecs:*",
-      "ec2:*"
+      "ec2:*",
     ]
   }
+
   statement {
-    actions =["iam:PassRole"]
-    effect = "Allow"
+    actions   = ["iam:PassRole"]
+    effect    = "Allow"
     resources = ["*"]
-     condition {
+
+    condition {
       test     = "StringLike"
       variable = "iam:PassedToService"
-      values = ["ecs-tasks.amazonaws.com"]
-    }      
+      values   = ["ecs-tasks.amazonaws.com"]
+    }
   }
+
   statement {
-    effect = "Allow"
-    actions = ["iam:CreateServiceLinkedRole"]
+    effect    = "Allow"
+    actions   = ["iam:CreateServiceLinkedRole"]
     resources = ["*"]
-      condition {
-        test     = "StringLike"
-        variable = "iam:AWSServiceName"
-        values = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com"]
-      }    
+
+    condition {
+      test     = "StringLike"
+      variable = "iam:AWSServiceName"
+      values   = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com"]
+    }
   }
 }
 
-
 resource "aws_iam_role_policy_attachment" "task-attach" {
-    role       = "${aws_iam_role.task_role.name}"
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  role       = "${aws_iam_role.task_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 resource "aws_iam_role" "task_role" {
-    name = "task_role"
-    assume_role_policy = <<EOF
+  name = "task_role"
+
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
