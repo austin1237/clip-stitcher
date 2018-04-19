@@ -3,15 +3,15 @@
 # Define these secrets as environment variables
 # ---------------------------------------------------------------------------------------------------------------------
 
-# AWS_ACCESS_KEY_ID_DEV
-# AWS_SECRET_ACCESS_KEY_DEV
-# TF_VAR_TWITCH_CLIENT_ID_DEV
-# TF_VAR_TWITCH_CHANNEL_NAME_DEV
-# TF_VAR_YOUTUBE_CLIENT_ID_DEV
-# TF_VAR_YOUTUBE_SECRET_DEV
-# TF_VAR_YOUTUBE_ACCESS_TOKEN_DEV
-# TF_VAR_YOUTUBE_REFRESH_TOKEN_DEV
-# TF_VAR_YOUTUBE_EXPIRY_DEV
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+# TF_VAR_TWITCH_CLIENT_ID_PROD
+# TF_VAR_TWITCH_CHANNEL_NAME_PROD
+# TF_VAR_YOUTUBE_CLIENT_ID_PROD
+# TF_VAR_YOUTUBE_SECRET_PROD
+# TF_VAR_YOUTUBE_ACCESS_TOKEN_PROD
+# TF_VAR_YOUTUBE_REFRESH_TOKEN_PROD
+# TF_VAR_YOUTUBE_EXPIRY_PROD
 
 variable "TWITCH_CLIENT_ID_PROD" {}
 variable "TWITCH_CHANNEL_NAME_PROD" {}
@@ -38,10 +38,10 @@ variable "docker_image" {
 
 variable "docker_version" {
   description = "The version (i.e. tag) of the Docker container to deploy for the gifbot (e.g. latest, 12345)"
-  default     = "dev"
+  default     = "latest"
 }
 
 variable "env" {
   description = "Name of the environment example dev/prod"
-  default     = "dev"
+  default     = "prod"
 }
