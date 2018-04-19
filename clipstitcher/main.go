@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/user/clipstitcher/downloader"
 	"github.com/user/clipstitcher/stitcher"
 	"github.com/user/clipstitcher/twitch"
 	"github.com/user/clipstitcher/uploader"
@@ -81,35 +81,22 @@ func init() {
 	}
 	youtubeExpiry = date
 
-	err = os.RemoveAll("./tmpClips/")
-	if err != nil {
-		fmt.Println("tmpClips could not be emptied")
-		os.Exit(1)
-	}
-	err = os.Mkdir("./tmpClips", 0777)
-	if err != nil {
-		fmt.Println("./tmpClips could not be created")
-		os.Exit(1)
-	}
-
 }
 
 func main() {
-	finLocation := "./tmpClips/finishedClip.mp4"
 	fmt.Println("clip sticher started")
 	start := time.Now()
 	twitchService := twitch.NewTwitchService(twitchChannelName, 10, twitchClientID)
-
-	videoLinks, err := twitchService.GetVideoLinks()
+	preparedClips, err := twitchService.GetClips()
 	logAndExit(err)
-	fmt.Println("videoLinks in main", videoLinks)
-	errs := downloader.DownloadClips(videoLinks)
-	logAndExit(errs[0])
 	fmt.Println("starting ffmpeg")
-	stitcher.StitchClips(finLocation, len(videoLinks))
-	uploader.Upload(finLocation, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry)
+	ffmpegReader, err := stitcher.StitchClips(preparedClips.VideoLinks)
+	logAndExit(err)
+	fmt.Println("starting upload")
+	uploader.Upload(ffmpegReader, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry, preparedClips.VideoDescription, twitchChannelName)
 	elapsed := time.Since(start)
-	fmt.Println("exiting")
+	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
+	fmt.Println(sitcherOutput)
 	log.Printf("total execution time took %s", elapsed)
 	os.Exit(0)
 }

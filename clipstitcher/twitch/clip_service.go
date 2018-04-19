@@ -20,35 +20,30 @@ func twitchClipRequest(streamName string, desiredCount int, clientID string) *ht
 	return req
 }
 
-func unMarshalClipJSON(resp *http.Response) (twitchResponseUrls, error) {
-	clipPages := twitchResponseUrls{}
+func unMarshalClipJSON(resp *http.Response) (twitchAPIResp, error) {
+	tclips := twitchAPIResp{}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bodyBytes, &clipPages)
+	err = json.Unmarshal(bodyBytes, &tclips)
 	if err != nil {
 		fmt.Println(err.Error())
 		err = errors.New("an error occured trying to parse twitch's json")
-		return twitchResponseUrls{}, err
+		return twitchAPIResp{}, err
 	}
-	return clipPages, nil
+	return tclips, nil
 }
 
-func getClipPageUrls(streamName string, desiredCount int, clientID string) ([]string, error) {
-	pageURLs := []string{}
+func getClips(streamName string, desiredCount int, clientID string) (twitchAPIResp, error) {
 	client := &http.Client{}
 	req := twitchClipRequest(streamName, desiredCount, clientID)
 	resp, err := client.Do(req)
-	fmt.Println(resp.Status)
 	if err != nil {
 		err = errors.New("an error occured trying connect to twitch's clip api")
-		return []string{}, err
+		return twitchAPIResp{}, err
 	}
-	clipPages, err := unMarshalClipJSON(resp)
+	clips, err := unMarshalClipJSON(resp)
 	if err != nil {
 		err = errors.New("an error occured trying connect to twitch's clip api")
-		return []string{}, err
+		return twitchAPIResp{}, err
 	}
-	for _, page := range clipPages.Clips {
-		pageURLs = append(pageURLs, page.URL)
-	}
-	return pageURLs, nil
+	return clips, nil
 }

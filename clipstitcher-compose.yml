@@ -5,7 +5,7 @@ services:
     volumes:
       - ./clipstitcher:/go/src/github.com/user/clipstitcher
     environment:
-      APP_ENV: dev
+      APP_ENV: "local"
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
       TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
       YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}

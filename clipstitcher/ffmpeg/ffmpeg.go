@@ -1,4 +1,4 @@
-package stitcher
+package ffmpeg
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 var Logs []byte
@@ -41,6 +42,7 @@ func StitchClips(clipLinks []string) (io.ReadCloser, error) {
 		return nil, err
 	}
 	go keepsLogsInMemory(logs)
+	go testShutDown(ffmpeg)
 	err = ffmpeg.Start()
 	if err != nil {
 		fmt.Println("error starting " + cmd)
@@ -49,6 +51,11 @@ func StitchClips(clipLinks []string) (io.ReadCloser, error) {
 
 	return fileStream, nil
 
+}
+
+func testShutDown(cmd *exec.Cmd) {
+	time.Sleep(45 * time.Second)
+	cmd.Process.Kill()
 }
 
 func keepsLogsInMemory(stdErr io.ReadCloser) {
