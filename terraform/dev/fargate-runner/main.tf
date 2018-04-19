@@ -1,5 +1,5 @@
 resource "aws_iam_role_policy" "lamda_role_policy" {
-  name   = "lamda_role_policy"
+  name   = "lamda_role_policy_${var.name}"
   role   = "${aws_iam_role.iam_for_lambda.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
 }
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
+  name = "iam_for_lambda_${var.name}"
 
   assume_role_policy = <<EOF
 {

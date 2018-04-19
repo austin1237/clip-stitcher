@@ -90,7 +90,7 @@ EOF
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "task_role_policy" {
-  name   = "task_role_policy"
+  name   = "task_role_policy_${var.name}"
   role   = "${aws_iam_role.task_role.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
 }
@@ -139,7 +139,7 @@ resource "aws_iam_role_policy_attachment" "task-attach" {
 }
 
 resource "aws_iam_role" "task_role" {
-  name = "task_role"
+  name = "task_role_${var.name}"
 
   assume_role_policy = <<EOF
 {
