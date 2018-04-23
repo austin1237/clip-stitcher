@@ -15,11 +15,7 @@
 
 variable "TWITCH_CLIENT_ID_PROD" {}
 variable "TWITCH_CHANNEL_NAME_PROD" {}
-variable "YOUTUBE_CLIENT_ID_PROD" {}
-variable "YOUTUBE_SECRET_PROD" {}
-variable "YOUTUBE_ACCESS_TOKEN_PROD" {}
-variable "YOUTUBE_REFRESH_TOKEN_PROD" {}
-variable "YOUTUBE_EXPIRY_PROD" {}
+variable "YOUTUBE_AUTH_PROD" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
