@@ -46,7 +46,6 @@ func init() {
 		fmt.Println("YOUTUBE_AUTH ENV var was not set.")
 		os.Exit(1)
 	}
-
 }
 
 func main() {
