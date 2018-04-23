@@ -1,9 +1,7 @@
 package uploader
 
 import (
-	"log"
 	"net/http"
-	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -25,24 +23,15 @@ func generateConfig(clientID string, clientSecret string) *oauth2.Config {
 
 // getClient uses a Context and Config to retrieve a Token
 // then generate a Client. It returns the generated Client.
-func getOAuthClient(clientID string, clientSecret string, accessToken string, refreshToken string, expiry time.Time) *http.Client {
+func getOAuthClient(ytAuth YtAuth) *http.Client {
 	ctx := context.Background()
-	config := generateConfig(clientID, clientSecret)
+	config := generateConfig(ytAuth.ClientID, ytAuth.ClientSecret)
 	tok := &oauth2.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  ytAuth.AccessToken,
+		RefreshToken: ytAuth.RefreshToken,
 		TokenType:    "Bearer",
-		Expiry:       expiry,
+		Expiry:       ytAuth.Expiry,
 	}
 
 	return config.Client(ctx, tok)
-}
-
-// Exchange the authorization code for an access token
-func exchangeToken(config *oauth2.Config, code string) (*oauth2.Token, error) {
-	tok, err := config.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		log.Fatalf("Unable to retrieve token %v", err)
-	}
-	return tok, nil
 }

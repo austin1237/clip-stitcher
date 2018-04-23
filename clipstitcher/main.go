@@ -18,11 +18,7 @@ var (
 	twitchChannelName string
 
 	// YOUTUBE ENV VARIABLES
-	youtubeClientID     string
-	youtubeSecret       string
-	youtubeAccessToken  string
-	youtubeRefreshToken string
-	youtubeExpiry       time.Time
+	youtubeAuth string
 )
 
 func logAndExit(err error) {
@@ -45,42 +41,11 @@ func init() {
 		os.Exit(1)
 	}
 
-	youtubeClientID = os.Getenv("YOUTUBE_CLIENT_ID")
-	if youtubeClientID == "" {
-		fmt.Println("YOUTUBE_CLIENT_ID ENV var was not set.")
+	youtubeAuth = os.Getenv("YOUTUBE_AUTH")
+	if twitchChannelName == "" {
+		fmt.Println("YOUTUBE_AUTH ENV var was not set.")
 		os.Exit(1)
 	}
-
-	youtubeSecret = os.Getenv("YOUTUBE_SECRET")
-	if youtubeSecret == "" {
-		fmt.Println("YOUTUBE_SECRET ENV var was not set.")
-		os.Exit(1)
-	}
-
-	youtubeAccessToken = os.Getenv("YOUTUBE_ACCESS_TOKEN")
-	if youtubeAccessToken == "" {
-		fmt.Println("YOUTUBE_ACCESS_TOKEN ENV var was not set.")
-		os.Exit(1)
-	}
-
-	youtubeRefreshToken = os.Getenv("YOUTUBE_REFRESH_TOKEN")
-	if youtubeRefreshToken == "" {
-		fmt.Println("YOUTUBE_REFRESH_TOKEN ENV var was not set.")
-		os.Exit(1)
-	}
-
-	youtubeExpiryStr := os.Getenv("YOUTUBE_EXPIRY")
-	if youtubeExpiryStr == "" {
-		fmt.Println("YOUTUBE_EXPIRY ENV var was not set.")
-		os.Exit(1)
-	}
-	date, err := time.Parse(time.RFC3339, youtubeExpiryStr)
-	if err != nil {
-		fmt.Println("YOUTUBE_EXPIRY is not a valid timestamp")
-		os.Exit(1)
-	}
-	youtubeExpiry = date
-
 }
 
 func main() {
@@ -93,7 +58,10 @@ func main() {
 	ffmpegReader, err := stitcher.StitchClips(preparedClips.VideoLinks)
 	logAndExit(err)
 	fmt.Println("starting upload")
-	uploader.Upload(ffmpegReader, youtubeClientID, youtubeSecret, youtubeAccessToken, youtubeRefreshToken, youtubeExpiry, preparedClips.VideoDescription, twitchChannelName)
+	err = uploader.Upload(ffmpegReader, youtubeAuth, preparedClips.VideoDescription, twitchChannelName)
+	if err != nil {
+		logAndExit(err)
+	}
 	elapsed := time.Since(start)
 	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
 	fmt.Println(sitcherOutput)
