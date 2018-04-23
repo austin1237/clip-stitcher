@@ -46,7 +46,7 @@ module "clipstitcher" {
   desired_count  = 0
 
   num_env_vars = 4
-  env_vars     = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID_DEV}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME_DEV}", "YOUTUBE_AUTH", "${var.YOUTUBE_AUTH_DEV}", "APP_ENV","${var.env}")}"
+  env_vars     = "${map("TWITCH_CLIENT_ID", "${var.TWITCH_CLIENT_ID_PROD}", "TWITCH_CHANNEL_NAME", "${var.TWITCH_CHANNEL_NAME_PROD}", "YOUTUBE_AUTH", "${var.YOUTUBE_AUTH_PROD}", "APP_ENV","${var.env}")}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
