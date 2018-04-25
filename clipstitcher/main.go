@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -24,6 +23,7 @@ var (
 func logAndExit(err error) {
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println("exiting due to error")
 		os.Exit(1)
 	}
 }
@@ -62,9 +62,10 @@ func main() {
 	if err != nil {
 		logAndExit(err)
 	}
+	fmt.Println("upload finished")
 	elapsed := time.Since(start)
 	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
 	fmt.Println(sitcherOutput)
-	log.Printf("total execution time took %s", elapsed)
+	fmt.Println("total execution time took", elapsed)
 	os.Exit(0)
 }
