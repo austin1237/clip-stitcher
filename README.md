@@ -23,7 +23,7 @@ docker-compose -f lambdas-compose.yml up
 ```
 
 ## Terraform
-Deployment currently uses [Terraform](https://www.terraform.io/) and AWS's [FARGATE](https://aws.amazon.com/fargate/)
+Deployment currently uses [Terraform](https://www.terraform.io/) and AWS's [FARGATE](https://aws.amazon.com/fargate/) and [Lambda](https://aws.amazon.com/lambda/)
 
 ### Setting up remote state
 Terraform has a concept called [remote state](https://www.terraform.io/docs/state/remote.html) which ensures the state of your infrastructure to be in sync for mutiple team members.
