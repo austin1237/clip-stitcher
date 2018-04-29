@@ -76,7 +76,7 @@ resource "aws_lambda_function" "test_lambda" {
 resource "aws_cloudwatch_event_rule" "once_a_day" {
   name                = "once_a_day"
   description         = "Fires off the clipstitcher once a day"
-  schedule_expression = "cron(30 5 * * ? *)"
+  schedule_expression = "${var.start_time}"
 }
 
 resource "aws_cloudwatch_event_target" "check_once_a_day" {
