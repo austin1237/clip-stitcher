@@ -74,7 +74,7 @@ resource "aws_lambda_function" "test_lambda" {
 
 #5:30 utc
 resource "aws_cloudwatch_event_rule" "once_a_day" {
-  name                = "once_a_day"
+  name                = "${var.name}"
   description         = "Fires off the clipstitcher once a day"
   schedule_expression = "${var.start_time}"
 }
