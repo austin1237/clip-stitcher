@@ -58,5 +58,5 @@ module "fargate-runner" {
   task_arn    = "${module.clipstitcher.task_arn}"
   name        = "clip-stitcher-runner-${var.env}"
   subnet_id   = "${module.vpc.subnet_id}"
-  start_time  = "cron(* 10 * * ? *)"
+  start_time  = "cron(30 10 * * ? *)"
 }

@@ -3,7 +3,13 @@ deploy_dev:
 	cd dev && rm .terraform -rf
 	cd dev && terraform init -input=false
 	cd dev && yes | terraform apply  -input=false -auto-approve
-	
+
+.PHONY: destroy_dev
+destroy_dev:
+	cd dev && rm .terraform -rf
+	cd dev && terraform init -input=false
+	cd dev && terraform destroy
+
 .PHONY: plan_dev
 plan_dev:
 	cd dev && rm .terraform -rf
@@ -19,6 +25,12 @@ deploy_prod:
 	cd prod && rm .terraform -rf
 	cd prod && terraform init -input=false
 	cd prod && yes | terraform apply  -input=false -auto-approve
+
+.PHONY: destroy_prod
+destroy_prod:
+	cd prod && rm .terraform -rf
+	cd prod && terraform init -input=false
+	cd prod && terraform destroy
 
 .PHONY: plan_prod
 plan_prod:
