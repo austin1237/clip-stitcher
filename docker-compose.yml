@@ -1,0 +1,52 @@
+version: '3'
+services:
+  # clipstitcher:
+  #   build: ./clipstitcher
+  #   volumes:
+  #     - ./clipstitcher:/go/src/github.com/user/clipstitcher
+  #   environment:
+  #     APP_ENV: "local"
+  #     TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+  #     TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+  #     YOUTUBE_AUTH: ${YOUTUBE_AUTH}
+  #     CONSUMER_ENDPOINT: "http://localstack:4576"
+  #     CONSUMER_NAME: "clipstitcher-sqs-local"
+  
+  clipfinder:
+    build: ./clipfinder
+    command: go build github.com/user/clipfinder
+    volumes:
+      - ./clipfinder:/go/src/github.com/user/clipfinder 
+  
+  localstack:
+    build: ./localstack
+    environment:
+      SERVICES: "sqs,sns"
+    ports:  
+      - "8080:8080"
+      - "4575:4575"
+      - "4576:4576"
+  
+  lambdarunner:
+    build: ./lambdarunner
+    entrypoint: /bin/bash 
+    environment:
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+      PRODUCER_ENDPOINT: "http://localstack:4575"
+      PRODUCER_NAME: "clipstitcher-sns-local"
+    volumes:
+      - ./clipfinder/clipfinder:/var/task/clipfinder
+  
+  tf:
+    build: ./terraform
+    entrypoint: make
+    command: deploy_local
+    volumes:
+      - ./lambdas:/lambdas
+      - ./terraform:/terraform
+      - ~/.aws:/root/.aws
+    environment:
+      TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
+      TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
+      TF_VAR_YOUTUBE_AUTH: ${YOUTUBE_AUTH}
