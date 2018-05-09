@@ -1,16 +1,20 @@
 version: '3'
 services:
-  # clipstitcher:
-  #   build: ./clipstitcher
-  #   volumes:
-  #     - ./clipstitcher:/go/src/github.com/user/clipstitcher
-  #   environment:
-  #     APP_ENV: "local"
-  #     TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
-  #     TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
-  #     YOUTUBE_AUTH: ${YOUTUBE_AUTH}
-  #     CONSUMER_ENDPOINT: "http://localstack:4576"
-  #     CONSUMER_NAME: "clipstitcher-sqs-local"
+  clipstitcher:
+    build: ./clipstitcher
+    command: go build github.com/user/clipstitcher
+    volumes:
+      - ./clipstitcher:/go/src/github.com/user/clipstitcher
+    environment:
+      APP_ENV: "local"
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+      YOUTUBE_AUTH: ${YOUTUBE_AUTH}
+      CONSUMER_ENDPOINT: "http://localstack:4576"
+      CONSUMER_NAME: "clipstitcher-sqs-local"
+      AWS_ACCESS_KEY_ID: "AKEY"
+      AWS_SECRET_ACCESS_KEY: "ASECRET"
+      AWS_REGION: "us-east-1"
   
   clipfinder:
     build: ./clipfinder
@@ -29,7 +33,7 @@ services:
   
   lambdarunner:
     build: ./lambdarunner
-    entrypoint: /bin/bash 
+    # entrypoint: /bin/bash 
     environment:
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
       TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
