@@ -4,8 +4,8 @@
 *.dll
 *.so
 *.dylib
-clipfinder
-clipstitcher
+bin/
+
 
 # Test binary, build with `go test -c`
 *.test

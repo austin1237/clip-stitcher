@@ -48,6 +48,7 @@ func main() {
 	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerName)
 	logAndExit(err)
 	clipMessage, err := consumerService.GetMessage()
+	fmt.Println("message data recieved")
 	logAndExit(err)
 	fmt.Println("starting ffmpeg")
 	ffmpegReader, err := stitcher.StitchClips(clipMessage.VideoLinks)
@@ -62,6 +63,7 @@ func main() {
 	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
 	fmt.Println(sitcherOutput)
 	err = consumerService.DeleteMessage(clipMessage)
+
 	logAndExit(err)
 	fmt.Println("total execution time took", elapsed)
 	os.Exit(0)

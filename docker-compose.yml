@@ -2,7 +2,7 @@ version: '3'
 services:
   clipstitcher:
     build: ./clipstitcher
-    command: go build github.com/user/clipstitcher
+    command: go install github.com/user/clipstitcher
     volumes:
       - ./clipstitcher:/go/src/github.com/user/clipstitcher
     environment:
@@ -18,7 +18,7 @@ services:
   
   clipfinder:
     build: ./clipfinder
-    command: go build github.com/user/clipfinder
+    command: go build -o /go/src/github.com/user/clipfinder/bin/clipfinder github.com/user/clipfinder 
     volumes:
       - ./clipfinder:/go/src/github.com/user/clipfinder 
   
@@ -40,7 +40,7 @@ services:
       PRODUCER_ENDPOINT: "http://localstack:4575"
       PRODUCER_NAME: "clipstitcher-sns-local"
     volumes:
-      - ./clipfinder/clipfinder:/var/task/clipfinder
+      - ./clipfinder/bin/clipfinder:/var/task/clipfinder
   
   tf:
     build: ./terraform

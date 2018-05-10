@@ -3,7 +3,6 @@ package consumer
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -72,7 +71,6 @@ func (cService consumerService) GetMessage() (clipMessage, error) {
 		return cMessage, err
 	}
 	cMessage.ReceiptHandle = messageOutput.Messages[0].ReceiptHandle
-	fmt.Println("Message recieved from sqs")
 	return cMessage, nil
 }
 
@@ -85,6 +83,5 @@ func (cService consumerService) DeleteMessage(message clipMessage) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("message deleted from sqs")
 	return nil
 }
