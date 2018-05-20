@@ -31,21 +31,13 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 		return preparedClips, err
 	}
 
-	pageURLs := make([]string, 0)
+	clipSlugs := make([]string, 0)
 
 	for _, clip := range tclips.Clips {
-		pageURLs = append(pageURLs, clip.URL)
+		clipSlugs = append(clipSlugs, clip.Slug)
 	}
 
-	clipHTMLS, err := getClipHTML(pageURLs)
-	if err != nil {
-		return preparedClips, err
-	}
-	clipSrcs, err := getSrcsFromHTML(clipHTMLS)
-	if err != nil {
-		return preparedClips, err
-	}
-	preparedClips.VideoLinks = clipSrcs
+	preparedClips.VideoSlugs = clipSlugs
 	preparedClips.VideoDescription = generateDescription(tclips)
 	return preparedClips, err
 }
@@ -65,40 +57,4 @@ func generateDescription(clips twitchAPIResp) string {
 	duration = endTime.Sub(startTime).Minutes()
 	description = description + fmt.Sprintf("Total lengh of the video should be %v long", duration)
 	return description
-}
-
-func getClipHTML(clipUrls []string) ([]string, error) {
-	clipHTMLs := []string{}
-	desiredCount := len(clipUrls)
-	htmlResponses := make(chan asyncString, desiredCount)
-
-	for _, url := range clipUrls {
-		go asyncGetClipHTML(url, htmlResponses)
-	}
-	// Wait for the Responses from the scraper
-	fmt.Println("Waiting for Scraper to finish")
-	for response := range htmlResponses {
-		err := response.err
-		if err != nil {
-			close(htmlResponses)
-			return []string{}, err
-		}
-		clipHTMLs = append(clipHTMLs, response.value)
-		if len(clipHTMLs) == desiredCount {
-			close(htmlResponses)
-		}
-	}
-	return clipHTMLs, nil
-}
-
-func getSrcsFromHTML(clipHTMLs []string) ([]string, error) {
-	clipSrcs := []string{}
-	for _, clipHTML := range clipHTMLs {
-		clipSrc, err := findVidSrcInHTML(clipHTML)
-		if err != nil {
-			return []string{}, err
-		}
-		clipSrcs = append(clipSrcs, clipSrc)
-	}
-	return clipSrcs, nil
 }

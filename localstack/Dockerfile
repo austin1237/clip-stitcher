@@ -1,1 +1,0 @@
-FROM localstack/localstack:0.8.6

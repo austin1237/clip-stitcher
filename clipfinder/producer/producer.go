@@ -9,7 +9,7 @@ import (
 )
 
 type clipMessage struct {
-	VideoLinks       []string `json:"videoLinks"`
+	VideoSlugs       []string `json:"videoSlugs"`
 	VideoDescription string   `json:"videoDescription"`
 	ChannelName      string   `json:"channelName"`
 }
@@ -40,9 +40,9 @@ func NewProducerService(endpoint string, name string) (producerService, error) {
 	return pService, nil
 }
 
-func (pService producerService) SendMessage(videoLinks []string, videoDescription string, channelName string) error {
+func (pService producerService) SendMessage(videoSlugs []string, videoDescription string, channelName string) error {
 	cMessage := clipMessage{
-		VideoLinks:       videoLinks,
+		VideoSlugs:       videoSlugs,
 		VideoDescription: videoDescription,
 		ChannelName:      channelName,
 	}

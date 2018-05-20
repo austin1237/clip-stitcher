@@ -9,6 +9,7 @@ type clip struct {
 }
 
 type twitchClip struct {
+	Slug     string  `json:"slug"`
 	URL      string  `json:"url"`
 	Duration float64 `json:"duration"`
 	Title    string  `json:"title"`
@@ -41,7 +42,7 @@ type twitchDuration struct {
 }
 
 type PreparedClips struct {
-	VideoLinks       []string
+	VideoSlugs       []string
 	VideoDescription string
 }
 

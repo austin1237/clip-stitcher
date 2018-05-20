@@ -1,0 +1,22 @@
+version: '3'
+services:
+  fargaterunner:
+    build: ./fargaterunner
+    command: bash -c 'go build main.go && zip fargaterunner ./main && rm main'
+    volumes:
+      - ./fargaterunner:/go/src/github.com/user/fargaterunner
+      
+  clipfinder:
+    build: ./clipfinder
+    command: bash -c "go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder ./bin && rm clipfinder" 
+    volumes:
+      - ./clipfinder:/go/src/github.com/user/clipfinder
+
+  clipscraper:
+    build: ./clipscraper
+    entrypoint: npm
+    command: install
+    volumes:
+      - ./clipscraper:/app
+    environment:
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"

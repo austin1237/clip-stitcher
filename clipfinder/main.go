@@ -48,7 +48,6 @@ func init() {
 	producerEndpoint = os.Getenv("PRODUCER_ENDPOINT")
 }
 
-//Test
 func HandleRequest(ctx context.Context, event events.S3Event) (string, error) {
 	twitchService := twitch.NewTwitchService(twitchChannelName, 10, twitchClientID)
 	preparedClips, err := twitchService.GetClips()
@@ -61,7 +60,7 @@ func HandleRequest(ctx context.Context, event events.S3Event) (string, error) {
 		log.Fatal(err.Error())
 		return "", err
 	}
-	err = producerService.SendMessage(preparedClips.VideoLinks, preparedClips.VideoDescription, twitchChannelName)
+	err = producerService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, twitchChannelName)
 	if err != nil {
 		log.Fatal(err.Error())
 		return "", err

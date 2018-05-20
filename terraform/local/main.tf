@@ -16,8 +16,14 @@ provider "aws" {
   }
 }
 
-module "queue" {
+module "clip-slug-que" {
   source         = "./queue"
-  sqs_queue_name = "clipstitcher-sqs-${var.env}"
-  sns_topic_name = "clipstitcher-sns-${var.env}"
+  sqs_queue_name = "clip-slugs-${var.env}"
+  sns_topic_name = "clip-slugs-${var.env}"
+}
+
+module "clip-link-que" {
+  source         = "./queue"
+  sqs_queue_name = "clip-links-${var.env}"
+  sns_topic_name = "clip-links-${var.env}"
 }

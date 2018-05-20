@@ -1,3 +1,18 @@
+.PHONEY: destroy_dis
+destroy_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && yes | terraform destroy  -input=false -auto-approve
+
+.PHONY: plan_dis
+plan_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && terraform plan
+
+.PHONY: deploy_dis
+deploy_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && yes | terraform apply  -input=false -auto-approve
+
 .PHONY: plan_local
 plan_local:
 	cd local && rm .terraform -rf && rm -f terraform.tfstate 
