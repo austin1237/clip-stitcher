@@ -22,7 +22,7 @@ var (
 	//ENV VARIABLES
 	twitchClientID    string
 	twitchChannelName string
-	producerName      string
+	producerArn       string
 	producerEndpoint  string
 )
 
@@ -39,9 +39,9 @@ func init() {
 		os.Exit(1)
 	}
 
-	producerName = os.Getenv("PRODUCER_NAME")
-	if producerName == "" {
-		fmt.Println("PRODUCER_NAME ENV var was not set.")
+	producerArn = os.Getenv("PRODUCER_ARN")
+	if producerArn == "" {
+		fmt.Println("PRODUCER_ARN ENV var was not set.")
 		os.Exit(1)
 	}
 
@@ -55,12 +55,9 @@ func HandleRequest(ctx context.Context, event events.S3Event) (string, error) {
 		log.Fatal(err.Error())
 		return "", err
 	}
-	producerService, err := producer.NewProducerService(producerEndpoint, producerName)
-	if err != nil {
-		log.Fatal(err.Error())
-		return "", err
-	}
-	err = producerService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, twitchChannelName)
+	pService := producer.NewProducerService(producerEndpoint, producerArn)
+	pService.CheckSubscriptions(producerEndpoint)
+	err = pService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, twitchChannelName)
 	if err != nil {
 		log.Fatal(err.Error())
 		return "", err

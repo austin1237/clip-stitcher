@@ -25,7 +25,7 @@ type consumerService struct {
 	QueueURL  *string
 }
 
-func NewConsumerService(queEndpoint string, queueName string) (consumerService, error) {
+func NewConsumerService(queEndpoint string, queueURL string) (consumerService, error) {
 	consumerService := consumerService{}
 	sess := session.Must(session.NewSession())
 	sqsClient := &sqs.SQS{}
@@ -35,12 +35,7 @@ func NewConsumerService(queEndpoint string, queueName string) (consumerService, 
 		sqsClient = sqs.New(sess, aws.NewConfig())
 	}
 
-	queConfig := &sqs.CreateQueueInput{QueueName: &queueName}
-	output, err := sqsClient.CreateQueue(queConfig)
-	if err != nil {
-		return consumerService, err
-	}
-	consumerService.QueueURL = output.QueueUrl
+	consumerService.QueueURL = &queueURL
 	consumerService.SqsClient = sqsClient
 	return consumerService, nil
 }

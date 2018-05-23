@@ -11,7 +11,7 @@ import (
 	youtube "google.golang.org/api/youtube/v3"
 )
 
-func uploadToYouTube(fileStream io.ReadCloser, client *http.Client, videoDescirption string, channelName string) {
+func uploadToYouTube(fileStream io.ReadCloser, client *http.Client, videoDescirption string, channelName string) error {
 	flag.Parse()
 	defer fileStream.Close()
 
@@ -32,9 +32,9 @@ func uploadToYouTube(fileStream io.ReadCloser, client *http.Client, videoDescirp
 
 	call := service.Videos.Insert("snippet,status", upload)
 
-	response, err := call.Media(fileStream).Do()
+	_, err = call.Media(fileStream).Do()
 	if err != nil {
-		log.Fatalf("Error making YouTube API call: %v", err)
+		return err
 	}
-	fmt.Printf("Upload successful! Video ID: %v\n", response.Id)
+	return nil
 }

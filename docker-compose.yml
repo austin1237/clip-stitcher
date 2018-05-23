@@ -8,11 +8,9 @@ services:
   #     - ./clipstitcher:/go/src/github.com/user/clipstitcher
   #   environment:
   #     APP_ENV: "local"
-  #     TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
-  #     TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
   #     YOUTUBE_AUTH: ${YOUTUBE_AUTH}
   #     CONSUMER_ENDPOINT: "http://localstack:4576"
-  #     CONSUMER_NAME: "clipstitcher-sqs-local"
+  #     CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
   #     AWS_ACCESS_KEY_ID: "AKEY"
   #     AWS_SECRET_ACCESS_KEY: "ASECRET"
   #     AWS_REGION: "us-east-1"
@@ -25,6 +23,8 @@ services:
       - "8080:8080"
       - "4575:4575"
       - "4576:4576"
+    logging:
+      driver: none
   
   clipfinder:
     image: lambci/lambda:go1.x
@@ -33,17 +33,18 @@ services:
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
       TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
       PRODUCER_ENDPOINT: "http://localstack:4575"
-      PRODUCER_NAME: "clip-slugs-local"
+      PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-slugs-local"
     volumes:
       - ./clipfinder/bin/clipfinder:/var/task/clipfinder
-  
+
   clipscraper:
     image: lambci/lambda:nodejs8.10
     command: index.handler
     environment:
       PRODUCER_ENDPOINT: "http://localstack:4575"
+      PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-links-local"
       CONSUMER_ENDPOINT: "http://localstack:4576"
-      CONSUMER_NAME: "clip-slugs-local"
+      CONSUMER_URL: "http://localstack:4576/queue/clip-slugs-local"
     volumes:
       - ./clipscraper:/var/task/
       
@@ -60,4 +61,6 @@ services:
       TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
       TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
       TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
+    logging:
+      driver: none
   

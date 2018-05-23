@@ -2,7 +2,6 @@ package twitch
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -62,7 +61,6 @@ func getDurationFromTime(cTime clipTime, duration float64) clipDuration {
 
 func getTimeFromURL(url string) (clipTime, error) {
 	var cTime clipTime
-	fmt.Println(url)
 	timeStr := strings.Split(url, "=")[1]
 
 	if len(strings.Split(timeStr, "h")) == 2 {

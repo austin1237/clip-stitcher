@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/user/clipstitcher/consumer"
@@ -15,7 +14,7 @@ var (
 	// YOUTUBE ENV VARIABLES
 	youtubeAuth      string
 	consumerEndpoint string
-	consumerName     string
+	consumerURL      string
 )
 
 func logAndExit(err error) {
@@ -33,9 +32,9 @@ func init() {
 		os.Exit(1)
 	}
 
-	consumerName = os.Getenv("CONSUMER_NAME")
-	if consumerName == "" {
-		fmt.Println("CONSUMER_NAME ENV var was not set.")
+	consumerURL = os.Getenv("CONSUMER_URL")
+	if consumerURL == "" {
+		fmt.Println("CONSUMER_URL ENV var was not set.")
 		os.Exit(1)
 	}
 
@@ -45,7 +44,7 @@ func init() {
 func main() {
 	fmt.Println("clip sticher started")
 	start := time.Now()
-	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerName)
+	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerURL)
 	logAndExit(err)
 	clipMessage, err := consumerService.GetMessage()
 	fmt.Println("message data recieved")
@@ -56,13 +55,13 @@ func main() {
 	fmt.Println("starting upload")
 	err = uploader.Upload(ffmpegReader, youtubeAuth, clipMessage.VideoDescription, clipMessage.ChannelName)
 	if err != nil {
+		fmt.Println(string(stitcher.Logs))
 		logAndExit(err)
 	}
 	fmt.Println("upload finished")
 	elapsed := time.Since(start)
-	sitcherOutput := strings.Replace(string(stitcher.Logs), "%", "%%", -1)
-	fmt.Println(sitcherOutput)
 	err = consumerService.DeleteMessage(clipMessage)
+	fmt.Println("message deleted")
 
 	logAndExit(err)
 	fmt.Println("total execution time took", elapsed)

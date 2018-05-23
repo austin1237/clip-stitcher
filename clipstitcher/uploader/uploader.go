@@ -23,7 +23,10 @@ func Upload(fileStream io.ReadCloser, authString string, videoDescription string
 		return err
 	}
 	authClient := getOAuthClient(ytAuth)
-	uploadToYouTube(fileStream, authClient, videoDescription, channelName)
+	err = uploadToYouTube(fileStream, authClient, videoDescription, channelName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

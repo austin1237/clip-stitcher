@@ -16,13 +16,13 @@ provider "aws" {
   }
 }
 
-module "clip-slug-que" {
+module "clip-slugs-que" {
   source         = "./queue"
   sqs_queue_name = "clip-slugs-${var.env}"
   sns_topic_name = "clip-slugs-${var.env}"
 }
 
-module "clip-link-que" {
+module "clip-links-que" {
   source         = "./queue"
   sqs_queue_name = "clip-links-${var.env}"
   sns_topic_name = "clip-links-${var.env}"

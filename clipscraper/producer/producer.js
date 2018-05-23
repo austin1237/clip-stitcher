@@ -1,20 +1,29 @@
 const AWS = require('aws-sdk');
 
+class producer {
 
-
-class consumer {
-    constructor(queueUrl,  snsClient){
-        this._queueARN = queueARN
-        this._sqsClient = snsClient
-    }
-
-    static async build (queueName, queEndpoint){
+    constructor(topicARN,  customEndpoint){
         let snsConfig = {apiVersion: '2010-03-31'};
-        if (queEndpoint !== "") {
-            snsConfig.endpoint = new AWS.Endpoint(queEndpoint);
-            const snsClient = new AWS.SQS(sqsConfig);
-            const queueARN = `${queEndpoint}/queue/${queueName}`
-            return Promise.resolve(new consumer(queueUrl, sqsClient))
+        if (customEndpoint) {
+            snsConfig.endpoint = new AWS.Endpoint(customEndpoint);
         }
+        this._topicARN = topicARN
+        this._snsClient = new AWS.SNS(snsConfig);
     }
+
+    publishMessage(videoLinks, videoDescription, channelName){
+        const message = {
+            videoLinks: videoLinks,
+            videoDescription: videoDescription,
+            channelName: channelName
+        }
+        const params = {
+            TopicArn: this._topicARN,
+            Message: JSON.stringify(message)
+        }
+        return this._snsClient.publish(params).promise();
+    }
+
 }
+
+module.exports = producer;

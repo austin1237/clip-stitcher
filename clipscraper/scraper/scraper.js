@@ -44,6 +44,7 @@ class Scraper {
         const timeout = 30000;
         const networkIdleTimeout = 1100;
         const url = `https://player.twitch.tv/?branding=false&clip=${slug}&externalfullscreen=true&muted=true&origin=https%3A%2F%2Fclips.twitch.tv&player=clips-viewing&playsinline=true`
+        console.log(url)
         await Promise.all([
           page.waitForNavigation({ timeout, waitUntil: 'load' }),
           page.goto(url)

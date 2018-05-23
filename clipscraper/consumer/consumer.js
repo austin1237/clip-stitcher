@@ -1,52 +1,65 @@
 const AWS = require('aws-sdk');
 
 class consumer {
-    constructor(queueUrl,  sqsClient){
-        this._queueUrl = queueUrl
-        this._sqsClient = sqsClient
-    }
-
-    static async build (queueName, queEndpoint){
+    constructor(queueUrl,  customEndpoint){
         let sqsConfig = {apiVersion: '2012-11-05'};
-        if (queEndpoint !== "") {
-            sqsConfig.endpoint = new AWS.Endpoint(queEndpoint);
-            const sqsClient = new AWS.SQS(sqsConfig);
-            const queueUrl = `${queEndpoint}/queue/${queueName}`
-            return Promise.resolve(new consumer(queueUrl, sqsClient))
+        if (customEndpoint) {
+            sqsConfig.endpoint = new AWS.Endpoint(customEndpoint);
         }
-        try{
-            const sqsClient = new AWS.SQS(sqsConfig);
-            const query = {QueueName: queueName}
-            const data = await sqsClient.getQueueUrl(query).promise();
-            return Promise.resolve(new consumer(data.QueueUrl, sqsClient))
-        } catch (e) {
-            return Promise.reject(e)
-        }
+        this._queueUrl = queueUrl
+        this._sqsClient = new AWS.SQS(sqsConfig);
+        this._retryCount = 10
     }
 
     async getMessage(){
-        const query = {
+        const params = {
             QueueUrl: this._queueUrl,
+            WaitTimeSeconds: 20
         }
-        try{
-            const data = await this._sqsClient.receiveMessage(query).promise();
-            const snsWrapper = JSON.parse(data.Messages[0].Body)
-            let message ={}
-            message.receiptHandle = data.Messages[0].ReceiptHandle
-            message.body = JSON.parse(snsWrapper.Message)
-            return Promise.resolve(message)
-        }catch (e){
-            return Promise.reject(e)
-        }   
+        let err = {}
+        for (let retry = 0; retry < this._retryCount; retry++) {
+            try{
+                const data = await this._sqsClient.receiveMessage(params).promise();
+                if (!data || !Array.isArray(data.Messages) || !data.Messages.length){
+                    const err = new Error(`no messages returned from ${this._queueUrl}`)
+                    throw err
+                }
+                const snsWrapper = JSON.parse(data.Messages[0].Body)
+                let message ={}
+                message.receiptHandle = data.Messages[0].ReceiptHandle
+                message.body = JSON.parse(snsWrapper.Message)
+                return Promise.resolve(message)
+            }catch (e){
+                err = e;
+                console.log("Error getting message retrying")
+                await sleep(1000)
+            }
+        }
+        return Promise.reject(err) 
     }
 
-    deleteMessage(message){
-        const query = {
+    async deleteMessage(message){
+        const params = {
             QueueUrl: this._queueUrl,
-            ReceiptHandle: message.ReceiptHandle
+            ReceiptHandle: message.receiptHandle
         }
-        return this._sqsClient.deleteMessage(query).promise();
+        let err = {};
+        for (let retry = 0; retry < this._retryCount; retry++) {
+            try{
+                this._sqsClient.deleteMessage(params).promise();
+                return Promise.resolve();
+            }catch (e){
+                err = e;
+                console.log("Error deleting message retrying")
+                await sleep(1000)
+            }
+        }
+        return Promise.reject(err) 
     }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = consumer
