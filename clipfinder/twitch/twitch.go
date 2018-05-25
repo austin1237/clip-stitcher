@@ -1,6 +1,7 @@
 package twitch
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -25,9 +26,16 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 	if err != nil {
 		return preparedClips, err
 	}
+
+	tclips = filterOutNonVod(tclips)
 	tclips, err = filterOutOverlap(tclips)
 
 	if err != nil {
+		return preparedClips, err
+	}
+
+	if len(tclips.Clips) < 2 {
+		err = errors.New("Not enough clips left to combine after filter")
 		return preparedClips, err
 	}
 
@@ -40,6 +48,16 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 	preparedClips.VideoSlugs = clipSlugs
 	preparedClips.VideoDescription = generateDescription(tclips)
 	return preparedClips, err
+}
+
+func filterOutNonVod(clips twitchAPIResp) twitchAPIResp {
+	clipsWithVod := twitchAPIResp{}
+	for _, clip := range clips.Clips {
+		if clip.Vod.URL != "" && clip.Vod.ID != "" {
+			clipsWithVod.Clips = append(clipsWithVod.Clips, clip)
+		}
+	}
+	return clipsWithVod
 }
 
 func generateDescription(clips twitchAPIResp) string {

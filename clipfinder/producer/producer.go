@@ -36,7 +36,7 @@ func NewProducerService(endpoint string, arn string) producerService {
 
 	pService.SnsClient = snsClient
 	pService.TopicArn = &arn
-	pService.RetriesCount = 10
+	pService.RetriesCount = 30
 	return pService
 }
 
@@ -48,21 +48,19 @@ func (pService producerService) CheckSubscriptions(customEndPoint string) error 
 	check := &sns.ListSubscriptionsByTopicInput{
 		TopicArn: pService.TopicArn,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
+
 	for retry := 1; retry <= pService.RetriesCount; retry++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		req, resp := pService.SnsClient.ListSubscriptionsByTopicRequest(check)
 		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
 		err := req.Send()
+		cancel()
 		if err == nil && len(resp.Subscriptions) > 0 {
-			fmt.Println("subs found returning")
 			return nil
 		} else if retry == pService.RetriesCount {
 			err = errors.New("Max retries hit trying to see subscriptions")
 			return err
 		}
-
-		fmt.Println("No subscriptions found for " + *pService.TopicArn + " retrying")
 		time.Sleep(1 * time.Second)
 	}
 
@@ -85,12 +83,12 @@ func (pService producerService) SendMessage(videoSlugs []string, videoDescriptio
 		TopicArn: pService.TopicArn,
 		Message:  &messageBody,
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 	for retry := 1; retry <= pService.RetriesCount; retry++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		req, _ := pService.SnsClient.PublishRequest(message)
 		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
 		err := req.Send()
-		cancel()
 		if err == nil {
 			return nil
 		} else if retry == pService.RetriesCount {

@@ -23,12 +23,11 @@ main = async () => {
     }
     console.log('message recevied')
     let srcPromises = [];
-    message.body.videoSlugs.forEach((slug)=> {
+    message.videoSlugs.forEach((slug)=> {
         srcPromises.push(scraper.getVidSrcFromUrl(slug))
     });
     try{
         srcs = await Promise.all(srcPromises)
-        console.log(srcs)
         console.log("video links founds")
         await producer.publishMessage(srcs, message.videoDescription, message.channelName)
         console.log("new message published")

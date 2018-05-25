@@ -1,8 +1,11 @@
 package consumer
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -21,8 +24,9 @@ type clipMessage struct {
 }
 
 type consumerService struct {
-	SqsClient *sqs.SQS
-	QueueURL  *string
+	SqsClient  *sqs.SQS
+	QueueURL   *string
+	RetryCount int
 }
 
 func NewConsumerService(queEndpoint string, queueURL string) (consumerService, error) {
@@ -37,26 +41,43 @@ func NewConsumerService(queEndpoint string, queueURL string) (consumerService, e
 
 	consumerService.QueueURL = &queueURL
 	consumerService.SqsClient = sqsClient
+	consumerService.RetryCount = 12
 	return consumerService, nil
 }
 
-func (cService consumerService) GetMessage() (clipMessage, error) {
-	cMessage := clipMessage{}
-	snsWrapper := snsMessage{}
+func receiveMessageFromQue(cService consumerService) (*sqs.ReceiveMessageOutput, error) {
+	waitTime := int64(20)
+	resp := &sqs.ReceiveMessageOutput{}
 	messageConfig := &sqs.ReceiveMessageInput{
-		QueueUrl: cService.QueueURL,
+		QueueUrl:        cService.QueueURL,
+		WaitTimeSeconds: &waitTime,
 	}
 
-	messageOutput, err := cService.SqsClient.ReceiveMessage(messageConfig)
-	if err != nil {
-		return cMessage, err
+	for retry := 1; retry <= cService.RetryCount; retry++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		req, resp := cService.SqsClient.ReceiveMessageRequest(messageConfig)
+		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
+		err := req.Send()
+		cancel()
+		if err == nil && len(resp.Messages) > 0 {
+			return resp, err
+		} else if retry == cService.RetryCount {
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			err = errors.New("Max retries reached trying to publish sns mesage")
+			return resp, err
+		}
+		time.Sleep(1 * time.Second)
 	}
-	if len(messageOutput.Messages) == 0 {
-		err = errors.New("No messages found in sqs que")
-		return cMessage, err
-	}
-	wrapperMessage := *messageOutput.Messages[0].Body
-	err = json.Unmarshal([]byte(wrapperMessage), &snsWrapper)
+	return resp, nil
+}
+
+func formatQueResponse(rawSqs *sqs.ReceiveMessageOutput) (clipMessage, error) {
+	cMessage := clipMessage{}
+	snsWrapper := snsMessage{}
+	wrapperMessage := *rawSqs.Messages[0].Body
+	err := json.Unmarshal([]byte(wrapperMessage), &snsWrapper)
 	if err != nil {
 		return cMessage, err
 	}
@@ -65,7 +86,20 @@ func (cService consumerService) GetMessage() (clipMessage, error) {
 	if err != nil {
 		return cMessage, err
 	}
-	cMessage.ReceiptHandle = messageOutput.Messages[0].ReceiptHandle
+	cMessage.ReceiptHandle = rawSqs.Messages[0].ReceiptHandle
+	return cMessage, nil
+}
+
+func (cService consumerService) GetMessage() (clipMessage, error) {
+	cMessage := clipMessage{}
+	resp, err := receiveMessageFromQue(cService)
+	if err != nil {
+		return cMessage, err
+	}
+	cMessage, err = formatQueResponse(resp)
+	if err != nil {
+		return cMessage, err
+	}
 	return cMessage, nil
 }
 

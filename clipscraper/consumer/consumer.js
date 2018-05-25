@@ -26,12 +26,12 @@ class consumer {
                 }
                 const snsWrapper = JSON.parse(data.Messages[0].Body)
                 let message ={}
+                let snsBody = {}
+                message = JSON.parse(snsWrapper.Message)
                 message.receiptHandle = data.Messages[0].ReceiptHandle
-                message.body = JSON.parse(snsWrapper.Message)
                 return Promise.resolve(message)
             }catch (e){
                 err = e;
-                console.log("Error getting message retrying")
                 await sleep(1000)
             }
         }

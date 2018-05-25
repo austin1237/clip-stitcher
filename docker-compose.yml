@@ -1,19 +1,19 @@
 version: '3'
 services:
 
-  # clipstitcher:
-  #   build: ./clipstitcher
-  #   command: go install github.com/user/clipstitcher
-  #   volumes:
-  #     - ./clipstitcher:/go/src/github.com/user/clipstitcher
-  #   environment:
-  #     APP_ENV: "local"
-  #     YOUTUBE_AUTH: ${YOUTUBE_AUTH}
-  #     CONSUMER_ENDPOINT: "http://localstack:4576"
-  #     CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
-  #     AWS_ACCESS_KEY_ID: "AKEY"
-  #     AWS_SECRET_ACCESS_KEY: "ASECRET"
-  #     AWS_REGION: "us-east-1"
+  clipstitcher:
+    build: ./clipstitcher
+    command: bash -c "go install . && clipstitcher "
+    volumes:
+      - ./clipstitcher:/go/src/github.com/user/clipstitcher
+    environment:
+      # APP_ENV: "local"
+      YOUTUBE_AUTH: ${YOUTUBE_AUTH}
+      CONSUMER_ENDPOINT: "http://localstack:4576"
+      CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
+      AWS_ACCESS_KEY_ID: "AKEY"
+      AWS_SECRET_ACCESS_KEY: "ASECRET"
+      AWS_REGION: "us-east-1"
   
   localstack:
     image: localstack/localstack:0.8.6

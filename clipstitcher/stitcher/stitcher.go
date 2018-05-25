@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
 	"strconv"
 )
@@ -29,9 +28,7 @@ func buildFFmpegcommand(clipLinks []string) string {
 
 func StitchClips(clipLinks []string) (io.ReadCloser, error) {
 	cmd := buildFFmpegcommand(clipLinks)
-	log.Println(cmd)
 	ffmpeg := exec.Command("bash", "-c", cmd)
-
 	fileStream, err := ffmpeg.StdoutPipe()
 	if err != nil {
 		return nil, err
