@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/user/clipstitcher/consumer"
 	"github.com/user/clipstitcher/stitcher"
-	"github.com/user/clipstitcher/uploader"
 )
 
 var (
@@ -43,27 +41,16 @@ func init() {
 
 func main() {
 	fmt.Println("clip sticher started")
-	start := time.Now()
 	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerURL)
 	logAndExit(err)
 	clipMessage, err := consumerService.GetMessage()
 	logAndExit(err)
-	fmt.Println("message recieved")
-	fmt.Println("starting ffmpeg")
-	ffmpegReader, err := stitcher.StitchClips(clipMessage.VideoLinks)
+	fmt.Println("Message found for " + clipMessage.ChannelName)
+	err = stitcher.StichAndUpload(clipMessage, youtubeAuth)
 	logAndExit(err)
-	fmt.Println("starting upload")
-	err = uploader.Upload(ffmpegReader, youtubeAuth, clipMessage.VideoDescription, clipMessage.ChannelName)
-	if err != nil {
-		fmt.Println(string(stitcher.Logs))
-		logAndExit(err)
-	}
-	fmt.Println("upload finished")
-	elapsed := time.Since(start)
+	fmt.Println("Video stitching finished for " + clipMessage.ChannelName)
 	err = consumerService.DeleteMessage(clipMessage)
-	fmt.Println("message deleted")
-
 	logAndExit(err)
-	fmt.Println("total execution time took", elapsed)
+	fmt.Println("message deleted for " + clipMessage.ChannelName)
 	os.Exit(0)
 }

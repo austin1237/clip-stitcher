@@ -1,16 +1,16 @@
 package ffmpeg
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"log"
 	"os/exec"
 	"strconv"
-	"time"
 )
 
-var Logs []byte
+type Service struct {
+	Cmd        *exec.Cmd
+	FileStream io.ReadCloser
+	Logs       io.ReadCloser
+}
 
 // Here's a blog where I found the ffmpeg command to combine videos with a transcode
 //http://www.bugcodemaster.com/article/concatenate-videos-using-ffmpeg
@@ -28,38 +28,19 @@ func buildFFmpegcommand(clipLinks []string) string {
 	return cmdString
 }
 
-func StitchClips(clipLinks []string) (io.ReadCloser, error) {
-	cmd := buildFFmpegcommand(clipLinks)
-	log.Println(cmd)
-	ffmpeg := exec.Command("bash", "-c", cmd)
-
-	fileStream, err := ffmpeg.StdoutPipe()
+func NewFFmpegService(clipLinks []string) (*Service, error) {
+	service := new(Service)
+	cmdTxt := buildFFmpegcommand(clipLinks)
+	service.Cmd = exec.Command("bash", "-c", cmdTxt)
+	fileStream, err := service.Cmd.StdoutPipe()
 	if err != nil {
-		return nil, err
+		return service, err
 	}
-	logs, err := ffmpeg.StderrPipe()
+	service.FileStream = fileStream
+	logs, err := service.Cmd.StderrPipe()
 	if err != nil {
-		return nil, err
+		return service, err
 	}
-	go keepsLogsInMemory(logs)
-	go testShutDown(ffmpeg)
-	err = ffmpeg.Start()
-	if err != nil {
-		fmt.Println("error starting " + cmd)
-		return nil, err
-	}
-
-	return fileStream, nil
-
-}
-
-func testShutDown(cmd *exec.Cmd) {
-	time.Sleep(45 * time.Second)
-	cmd.Process.Kill()
-}
-
-func keepsLogsInMemory(stdErr io.ReadCloser) {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stdErr)
-	Logs = buf.Bytes()
+	service.Logs = logs
+	return service, nil
 }

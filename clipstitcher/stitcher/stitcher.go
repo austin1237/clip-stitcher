@@ -1,55 +1,107 @@
 package stitcher
 
 import (
-	"bytes"
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
-	"os/exec"
-	"strconv"
+	"strings"
+	"time"
+
+	"github.com/user/clipstitcher/consumer"
+	"github.com/user/clipstitcher/ffmpeg"
+	"github.com/user/clipstitcher/uploader"
 )
 
-var Logs []byte
-
-// Here's a blog where I found the ffmpeg command to combine videos with a transcode
-//http://www.bugcodemaster.com/article/concatenate-videos-using-ffmpeg
-func buildFFmpegcommand(clipLinks []string) string {
-	cmdString := "ffmpeg"
-	inputs := ""
-	streamOptions := ""
-	for index, link := range clipLinks {
-		iStr := strconv.Itoa(index)
-		inputs = inputs + "-i " + link + " "
-		streamOptions = streamOptions + "[" + iStr + ":v:0] [" + iStr + ":a:0] "
+func StichAndUpload(clipMessage consumer.ClipMessage, ytAuth string) error {
+	videoLinks := clipMessage.VideoLinks
+	dupFileRd, dupFileWr := io.Pipe()
+	ffmpegService, err := ffmpeg.NewFFmpegService(videoLinks)
+	if err != nil {
+		return err
 	}
-	cmdString = "ffmpeg " + inputs + "-filter_complex \"" + streamOptions + "concat=n=" + strconv.Itoa(len(clipLinks)) + ":v=1:a=1 [v] [a]\" "
-	cmdString = cmdString + "-map [v] -map [a] -q:v 0 -q:a 0 -r 60 -f avi -"
-	return cmdString
+	teeFileStream := io.TeeReader(ffmpegService.FileStream, dupFileWr)
+	video := uploader.Video{
+		FileStream:       teeFileStream,
+		VideoDescription: clipMessage.VideoDescription,
+		ChannelName:      clipMessage.ChannelName,
+	}
+
+	errsChan := make(chan error)
+	defer close(errsChan)
+	go checkOutputErrs(ffmpegService.Logs, errsChan)
+	go makeSureDataIsStreaming(dupFileRd, errsChan)
+	go uploader.Upload(video, dupFileWr, ytAuth, errsChan)
+	ffmpegService.Cmd.Start()
+	for i := 0; i < 3; i++ {
+		err := <-errsChan
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func StitchClips(clipLinks []string) (io.ReadCloser, error) {
-	cmd := buildFFmpegcommand(clipLinks)
-	ffmpeg := exec.Command("bash", "-c", cmd)
-	fileStream, err := ffmpeg.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	logs, err := ffmpeg.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-	go keepsLogsInMemory(logs)
-	err = ffmpeg.Start()
-	if err != nil {
-		fmt.Println("error starting " + cmd)
-		return nil, err
-	}
+func makeSureDataIsStreaming(stream io.Reader, mainDone chan error) {
+	p := make([]byte, 4)
+	noDataCounter := 0
+	errsChan := make(chan error)
+	defer close(errsChan)
 
-	return fileStream, nil
+	// If data is recevied lower the counter
+	go func(counter *int, readerDone chan error) {
+		for {
+			_, err := stream.Read(p)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				readerDone <- err
+			}
+			currentCount := *counter
+			if currentCount > 0 {
+				*counter = currentCount - 1
+			}
+		}
+		readerDone <- nil
+	}(&noDataCounter, errsChan)
 
+	// Up the counter every X seconds throw err if counter reaches 3
+	go func(counter *int, tickerDone chan error) {
+		ticker := time.NewTicker(10 * time.Second)
+		for range ticker.C {
+			currentCount := *counter + 1
+			*counter = currentCount
+			if currentCount > 3 {
+				err := errors.New("No data has been streamed in awhile")
+				tickerDone <- err
+			}
+		}
+	}(&noDataCounter, errsChan)
+
+	// Returns either nil or err
+	err := <-errsChan
+	mainDone <- err
 }
 
-func keepsLogsInMemory(stdErr io.ReadCloser) {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stdErr)
-	Logs = buf.Bytes()
+func checkOutputErrs(stream io.ReadCloser, done chan error) {
+	defer stream.Close()
+	output := ""
+	r := bufio.NewReader(stream)
+	for {
+		line, _, err := r.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			done <- err
+		}
+		lineStr := string(line)
+		lineStrLower := strings.ToLower(lineStr)
+		output = output + lineStr + "\n"
+		if strings.Contains(lineStrLower, "error") {
+			fmt.Println("Error found in output " + lineStr)
+		}
+	}
+	done <- nil
 }

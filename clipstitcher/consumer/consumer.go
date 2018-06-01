@@ -16,7 +16,7 @@ type snsMessage struct {
 	Message string `json:"Message"`
 }
 
-type clipMessage struct {
+type ClipMessage struct {
 	VideoLinks       []string `json:"videoLinks"`
 	VideoDescription string   `json:"videoDescription"`
 	ChannelName      string   `json:"channelName"`
@@ -41,7 +41,7 @@ func NewConsumerService(queEndpoint string, queueURL string) (consumerService, e
 
 	consumerService.QueueURL = &queueURL
 	consumerService.SqsClient = sqsClient
-	consumerService.RetryCount = 12
+	consumerService.RetryCount = 60
 	return consumerService, nil
 }
 
@@ -65,7 +65,7 @@ func receiveMessageFromQue(cService consumerService) (*sqs.ReceiveMessageOutput,
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			err = errors.New("Max retries reached trying to publish sns mesage")
+			err = errors.New("Max retries reached trying to get sns mesage")
 			return resp, err
 		}
 		time.Sleep(1 * time.Second)
@@ -73,8 +73,8 @@ func receiveMessageFromQue(cService consumerService) (*sqs.ReceiveMessageOutput,
 	return resp, nil
 }
 
-func formatQueResponse(rawSqs *sqs.ReceiveMessageOutput) (clipMessage, error) {
-	cMessage := clipMessage{}
+func formatQueResponse(rawSqs *sqs.ReceiveMessageOutput) (ClipMessage, error) {
+	cMessage := ClipMessage{}
 	snsWrapper := snsMessage{}
 	wrapperMessage := *rawSqs.Messages[0].Body
 	err := json.Unmarshal([]byte(wrapperMessage), &snsWrapper)
@@ -90,8 +90,8 @@ func formatQueResponse(rawSqs *sqs.ReceiveMessageOutput) (clipMessage, error) {
 	return cMessage, nil
 }
 
-func (cService consumerService) GetMessage() (clipMessage, error) {
-	cMessage := clipMessage{}
+func (cService consumerService) GetMessage() (ClipMessage, error) {
+	cMessage := ClipMessage{}
 	resp, err := receiveMessageFromQue(cService)
 	if err != nil {
 		return cMessage, err
@@ -103,7 +103,7 @@ func (cService consumerService) GetMessage() (clipMessage, error) {
 	return cMessage, nil
 }
 
-func (cService consumerService) DeleteMessage(message clipMessage) error {
+func (cService consumerService) DeleteMessage(message ClipMessage) error {
 	deleteInput := &sqs.DeleteMessageInput{
 		QueueUrl:      cService.QueueURL,
 		ReceiptHandle: message.ReceiptHandle,

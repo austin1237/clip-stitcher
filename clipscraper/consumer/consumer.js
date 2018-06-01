@@ -8,7 +8,7 @@ class consumer {
         }
         this._queueUrl = queueUrl
         this._sqsClient = new AWS.SQS(sqsConfig);
-        this._retryCount = 10
+        this._retryCount = 60
     }
 
     async getMessage(){

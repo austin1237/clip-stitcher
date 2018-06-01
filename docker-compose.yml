@@ -1,4 +1,6 @@
 version: '3'
+volumes:
+  local_terraform_modules:
 services:
 
   clipstitcher:
@@ -48,7 +50,7 @@ services:
     volumes:
       - ./clipscraper:/var/task/
       
-  tf:
+  terraform:
     build: ./terraform
     entrypoint: make
     command: deploy_local
@@ -56,6 +58,7 @@ services:
       - ./lambdas:/lambdas
       - ./clipfinder:/clipfinder
       - ./terraform:/terraform
+      - local_terraform_modules:/terraform/local/.terraform
       - ~/.aws:/root/.aws
     environment:
       TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
