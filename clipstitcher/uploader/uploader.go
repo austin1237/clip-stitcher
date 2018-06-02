@@ -23,18 +23,17 @@ type Video struct {
 	ChannelName      string
 }
 
-func Upload(video Video, pipeWriter *io.PipeWriter, authString string, done chan error) {
-	defer pipeWriter.Close()
+func Upload(video Video, authString string) error {
 	ytAuth, err := decodeAuth(authString)
 	if err != nil {
-		done <- err
+		return err
 	}
 	authClient := getOAuthClient(ytAuth)
 	err = uploadToYouTube(video, authClient)
 	if err != nil {
-		done <- err
+		return err
 	}
-	done <- nil
+	return nil
 }
 
 func decodeAuth(authString string) (YtAuth, error) {

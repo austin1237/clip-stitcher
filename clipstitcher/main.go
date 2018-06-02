@@ -40,13 +40,13 @@ func init() {
 }
 
 func main() {
-	fmt.Println("clip sticher started")
+	fmt.Println("clip stitcher started")
 	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerURL)
 	logAndExit(err)
 	clipMessage, err := consumerService.GetMessage()
 	logAndExit(err)
 	fmt.Println("Message found for " + clipMessage.ChannelName)
-	err = stitcher.StichAndUpload(clipMessage, youtubeAuth)
+	err = stitcher.StitchAndUpload(clipMessage, youtubeAuth)
 	logAndExit(err)
 	fmt.Println("Video stitching finished for " + clipMessage.ChannelName)
 	err = consumerService.DeleteMessage(clipMessage)

@@ -1,9 +1,14 @@
 package ffmpeg
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type Service struct {
@@ -43,4 +48,60 @@ func NewFFmpegService(clipLinks []string) (*Service, error) {
 	}
 	service.Logs = logs
 	return service, nil
+}
+
+func (service Service) Start() (*bytes.Buffer, error) {
+	buffer := &bytes.Buffer{}
+	bufferChan := make(chan *bytes.Buffer)
+	errsChan := make(chan error)
+	defer service.Logs.Close()
+	defer service.FileStream.Close()
+	go checkOutputErrs(service.Logs, errsChan)
+	go bufferFileStream(service.FileStream, errsChan, bufferChan)
+	service.Cmd.Start()
+	for i := 0; i < 2; i++ {
+		err := <-errsChan
+		if err != nil {
+			service.Cmd.Process.Kill()
+			fmt.Println("Yo err is " + err.Error())
+			return buffer, err
+		}
+	}
+	buffer = <-bufferChan
+	return buffer, nil
+}
+
+func checkOutputErrs(stream io.ReadCloser, done chan error) {
+	defer stream.Close()
+	output := ""
+	r := bufio.NewReader(stream)
+	for {
+		line, _, err := r.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			done <- err
+		}
+		lineStr := string(line)
+		lineStrLower := strings.ToLower(lineStr)
+		output = output + lineStr + "\n"
+		if strings.Contains(lineStrLower, "error") {
+			done <- errors.New("Error found in output: " + output)
+		}
+	}
+	done <- nil
+}
+
+func bufferFileStream(fileStream io.Reader, errChan chan error, bufferChan chan *bytes.Buffer) {
+	buffer := bytes.Buffer{}
+	_, err := buffer.ReadFrom(fileStream)
+	if err != nil && err != io.EOF {
+		fmt.Println("err is " + err.Error())
+		buffer.Reset()
+		errChan <- err
+	} else {
+		errChan <- nil
+		bufferChan <- &buffer
+	}
 }

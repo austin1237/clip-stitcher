@@ -1,107 +1,36 @@
 package stitcher
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"strings"
-	"time"
 
 	"github.com/user/clipstitcher/consumer"
 	"github.com/user/clipstitcher/ffmpeg"
 	"github.com/user/clipstitcher/uploader"
 )
 
-func StichAndUpload(clipMessage consumer.ClipMessage, ytAuth string) error {
-	videoLinks := clipMessage.VideoLinks
-	dupFileRd, dupFileWr := io.Pipe()
-	ffmpegService, err := ffmpeg.NewFFmpegService(videoLinks)
+func StitchAndUpload(clipMessage consumer.ClipMessage, ytAuth string) error {
+	retryCount := 3
+	buffer := &bytes.Buffer{}
+	ffmpegService, err := ffmpeg.NewFFmpegService(clipMessage.VideoLinks)
 	if err != nil {
 		return err
 	}
-	teeFileStream := io.TeeReader(ffmpegService.FileStream, dupFileWr)
+	for retry := 1; retry <= retryCount; retry++ {
+		buffer, err = ffmpegService.Start()
+		if err == nil {
+			break
+		} else if retry == retryCount {
+			return errors.New("Max retries hit with ffmpeg")
+		}
+		fmt.Println("Retrying ffmpeg")
+	}
 	video := uploader.Video{
-		FileStream:       teeFileStream,
+		FileStream:       buffer,
 		VideoDescription: clipMessage.VideoDescription,
 		ChannelName:      clipMessage.ChannelName,
 	}
-
-	errsChan := make(chan error)
-	defer close(errsChan)
-	go checkOutputErrs(ffmpegService.Logs, errsChan)
-	go makeSureDataIsStreaming(dupFileRd, errsChan)
-	go uploader.Upload(video, dupFileWr, ytAuth, errsChan)
-	ffmpegService.Cmd.Start()
-	for i := 0; i < 3; i++ {
-		err := <-errsChan
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func makeSureDataIsStreaming(stream io.Reader, mainDone chan error) {
-	p := make([]byte, 4)
-	noDataCounter := 0
-	errsChan := make(chan error)
-	defer close(errsChan)
-
-	// If data is recevied lower the counter
-	go func(counter *int, readerDone chan error) {
-		for {
-			_, err := stream.Read(p)
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				readerDone <- err
-			}
-			currentCount := *counter
-			if currentCount > 0 {
-				*counter = currentCount - 1
-			}
-		}
-		readerDone <- nil
-	}(&noDataCounter, errsChan)
-
-	// Up the counter every X seconds throw err if counter reaches 3
-	go func(counter *int, tickerDone chan error) {
-		ticker := time.NewTicker(10 * time.Second)
-		for range ticker.C {
-			currentCount := *counter + 1
-			*counter = currentCount
-			if currentCount > 3 {
-				err := errors.New("No data has been streamed in awhile")
-				tickerDone <- err
-			}
-		}
-	}(&noDataCounter, errsChan)
-
-	// Returns either nil or err
-	err := <-errsChan
-	mainDone <- err
-}
-
-func checkOutputErrs(stream io.ReadCloser, done chan error) {
-	defer stream.Close()
-	output := ""
-	r := bufio.NewReader(stream)
-	for {
-		line, _, err := r.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			done <- err
-		}
-		lineStr := string(line)
-		lineStrLower := strings.ToLower(lineStr)
-		output = output + lineStr + "\n"
-		if strings.Contains(lineStrLower, "error") {
-			fmt.Println("Error found in output " + lineStr)
-		}
-	}
-	done <- nil
+	err = uploader.Upload(video, ytAuth)
+	return err
 }
