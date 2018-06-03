@@ -37,3 +37,6 @@ tmpClips/
 
 # .tfvars files
 *.tfvars
+
+#lambdas zip file
+*.zip

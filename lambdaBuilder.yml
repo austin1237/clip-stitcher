@@ -14,8 +14,7 @@ services:
 
   clipscraper:
     build: ./clipscraper
-    entrypoint: npm
-    command: install
+    command: bash -c "zip -r clipscraper.zip ."
     volumes:
       - ./clipscraper:/app
     environment:

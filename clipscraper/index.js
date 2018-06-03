@@ -21,18 +21,18 @@ main = async () => {
         console.log(e)
         process.exit(1)
     }
-    console.log('message recevied')
+    console.log(`message recevied for ${message.channelName}`)
     let srcPromises = [];
     message.videoSlugs.forEach((slug)=> {
         srcPromises.push(scraper.getVidSrcFromUrl(slug))
     });
     try{
         srcs = await Promise.all(srcPromises)
-        console.log("video links founds")
+        console.log(`video links founds for ${message.channelName}`)
         await producer.publishMessage(srcs, message.videoDescription, message.channelName)
-        console.log("new message published")
+        console.log(`new message published for ${message.channelName}`)
         await consumer.deleteMessage(message)
-        console.log("current message deleted")
+        console.log(`current message deleted for ${message.channelName}`)
     } catch(e) {
         console.log(e)
         process.exit(1)
@@ -41,5 +41,6 @@ main = async () => {
 
 exports.handler = async(event, context) => {
    await main()
+   
 }
 

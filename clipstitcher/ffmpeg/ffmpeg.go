@@ -51,6 +51,7 @@ func NewFFmpegService(clipLinks []string) (*Service, error) {
 }
 
 func (service Service) Start() (*bytes.Buffer, error) {
+	fmt.Println("start hit")
 	buffer := &bytes.Buffer{}
 	bufferChan := make(chan *bytes.Buffer)
 	errsChan := make(chan error)
@@ -58,12 +59,15 @@ func (service Service) Start() (*bytes.Buffer, error) {
 	defer service.FileStream.Close()
 	go checkOutputErrs(service.Logs, errsChan)
 	go bufferFileStream(service.FileStream, errsChan, bufferChan)
-	service.Cmd.Start()
+	err := service.Cmd.Start()
+	if err != nil {
+		return buffer, err
+	}
 	for i := 0; i < 2; i++ {
 		err := <-errsChan
 		if err != nil {
 			service.Cmd.Process.Kill()
-			fmt.Println("Yo err is " + err.Error())
+			fmt.Println("err is " + err.Error())
 			return buffer, err
 		}
 	}
