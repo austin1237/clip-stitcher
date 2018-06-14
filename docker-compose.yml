@@ -55,8 +55,9 @@ services:
     entrypoint: make
     command: deploy_local
     volumes:
-      - ./lambdas:/lambdas
       - ./clipfinder:/clipfinder
+      - ./clipscraper:/clipscraper
+      - ./fargaterunner:/fargaterunner
       - ./terraform:/terraform
       - local_terraform_modules:/terraform/local/.terraform
       - ~/.aws:/root/.aws
