@@ -24,16 +24,16 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-    - run: 
-        name: place clipfinder src in $GOPATH
-        command: cp -R ~/app/clipfinder /go/src/github.com/user/clipfinder
+      - run: 
+          name: place clipfinder src in $GOPATH
+          command: cp -R ~/app/clipfinder /go/src/github.com/user/clipfinder
 
-    - run:
-        name: building clipfinder lambda
-        command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder ./bin && rm clipfinder
-    - run:
-        name: checking dir
-        command: ls /go/src/github.com/user/clipfinder/bin
+      - run:
+          name: building clipfinder lambda
+          command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder ./bin && rm clipfinder
+      - run:
+          name: checking dir
+          command: ls /go/src/github.com/user/clipfinder/bin
 
 
 
