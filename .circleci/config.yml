@@ -32,7 +32,8 @@ jobs:
           command: cd /go/src/github.com/user/clipfinder && dep ensure
       - run:
           name: building clipfinder lambda
-          command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ~/app/clipfinder && rm clipfinder
+          command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder.zip ~/app/clipfinder && rm clipfinder
+
       - save_cache:
           key: clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
