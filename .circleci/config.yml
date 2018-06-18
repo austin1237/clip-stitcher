@@ -44,10 +44,10 @@ jobs:
       - image: lambci/lambda:build-go1.x
     working_directory: ~/app
     steps:
+      - checkout
       - restore_cache:
           keys:
             - clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
-      - checkout
       - run:
           name: Did the cache work
           command: ls ~/app/clipfinder
