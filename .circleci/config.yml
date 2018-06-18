@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test-clipfinder:
     docker:
       - image: docker:17.05.0-ce-git
     working_directory: ~/app
@@ -65,11 +65,11 @@ workflows:
   version: 2
   build-package-and-deploy:
     jobs:
-       - build
+       - test-clipfinder
 
        - package:
           requires: 
-            - build
+            - test-clipfinder
           filters:
             branches:
               only: 
