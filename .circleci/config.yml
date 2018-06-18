@@ -48,8 +48,8 @@ jobs:
           keys:
             - clipfinder-lambda-cache-{{ .Branch }}-{{ .BuildNum }}
       - run:
-        name: Did the cache work
-        command: ls ~/app/clipfinder
+          name: Did the cache work
+          command: ls ~/app/clipfinder
 
   package:
     docker:
