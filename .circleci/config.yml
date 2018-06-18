@@ -37,7 +37,19 @@ jobs:
           key: clipfinder-lambda-cache-{{ .Branch }}-{{ .BuildNum }}
           paths:
             - clipfinder/clipfinder.zip
-
+  
+   check-clipfinder:
+    docker:
+      - image: lambci/lambda:build-go1.x
+    working_directory: ~/app
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - clipfinder-lambda-cache-{{ .Branch }}-{{ .BuildNum }}
+      - run:
+        name: Did the cache work
+        command: ls ~/app/clipfinder
 
   package:
     docker:
@@ -92,6 +104,10 @@ workflows:
        - build-clipfinder:
           requires: 
             - test-clipfinder
+      
+       - check-clipfinder:
+          requires:
+            - build-clipfinder
 
        - package:
           requires: 
