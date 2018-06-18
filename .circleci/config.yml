@@ -38,7 +38,7 @@ jobs:
           paths:
             - clipfinder/clipfinder.zip
   
-   check-clipfinder:
+  check-clipfinder:
     docker:
       - image: lambci/lambda:build-go1.x
     working_directory: ~/app
