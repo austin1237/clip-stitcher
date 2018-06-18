@@ -50,6 +50,24 @@ jobs:
           key: fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - fargaterunner/fargaterunner.zip
+    
+  build-node-lambdas:
+    docker:
+      - image: lambci/lambda:build-nodejs8.10
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: 
+          name: install clipscraper dependencies
+          command: cd clipscraper && npm install
+      - run:
+          name: zip clipscraper
+          command: cd clipscraper && zip -r clipscraper.zip .
+      - save_cache:
+          key: clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - clipscraper/clipscraper.zip
   
   check-cache:
     docker:
@@ -69,6 +87,9 @@ jobs:
       - run:
           name: Did the cache work
           command: ls ~/app/fargaterunner
+      - run:
+          name: Did the cache work
+          command: ls ~/app/clipscraper
 
   package:
     docker:
@@ -124,13 +145,17 @@ workflows:
           requires: 
             - test
       
+      - build-node-lambdas:
+          requires: 
+            - build-go-lambdas
+      
        - check-cache:
           requires:
-            - build-go-lambdas
+            - build-node-lambdas
 
        - package:
           requires: 
-            - build-go-lambdas
+            - build-node-lambdas
           filters:
             branches:
               only: 
