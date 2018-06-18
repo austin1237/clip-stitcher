@@ -34,9 +34,9 @@ jobs:
           name: building clipfinder lambda
           command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ~/app/clipfinder && rm clipfinder
       - save_cache:
-        key: clipfinder-lambda-cache-{{ .Branch }}-{{ .BuildNum }}
-        paths:
-          - clipfinder/clipfinder.zip
+          key: clipfinder-lambda-cache-{{ .Branch }}-{{ .BuildNum }}
+          paths:
+            - clipfinder/clipfinder.zip
 
 
   package:
