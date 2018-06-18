@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  test-clipfinder:
+  test:
     docker:
       - image: docker:17.05.0-ce-git
     working_directory: ~/app
@@ -14,10 +14,10 @@ jobs:
           name: Install docker-compose
           command: pip install docker-compose==1.12.0
       - run:
-          name: Run tests
+          name: test clipfinder
           command: docker-compose -f ./testRunner.yml run clipfinder
   
-  build-clipfinder:
+  build-go-lambdas:
     docker:
       - image: lambci/lambda:build-go1.x
     working_directory: ~/app
@@ -28,18 +28,30 @@ jobs:
           name: place clipfinder src in $GOPATH
           command: mkdir -p /go/src/github.com/user/clipfinder && cp -a ~/app/clipfinder/. /go/src/github.com/user/clipfinder/
       - run:
-          name: install dependencies
+          name: install clipfinder dependencies
           command: cd /go/src/github.com/user/clipfinder && dep ensure
       - run:
           name: building clipfinder lambda
           command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder.zip ~/app/clipfinder && rm clipfinder
-
+      - run: 
+          name: place fargaterunner src in $GOPATH
+          command: mkdir -p /go/src/github.com/user/fargaterunner && cp -a ~/app/fargaterunner/. /go/src/github.com/user/fargaterunner/
+      - run:
+          name: install fargaterunner dependencies
+          command: cd /go/src/github.com/user/fargaterunner && dep ensure
+      - run:
+          name: building fargaterunner lambda
+          command: cd /go/src/github.com/user/fargaterunner && go build github.com/user/fargaterunner && zip fargaterunner ./fargaterunner && cp fargaterunner.zip ~/app/fargaterunner && rm fargaterunner
       - save_cache:
           key: clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - clipfinder/clipfinder.zip
+      - save_cache:
+          key: fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - fargaterunner/fargaterunner.zip
   
-  check-clipfinder:
+  check-cache:
     docker:
       - image: lambci/lambda:build-go1.x
     working_directory: ~/app
@@ -48,9 +60,15 @@ jobs:
       - restore_cache:
           keys:
             - clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Did the cache work
           command: ls ~/app/clipfinder
+      - run:
+          name: Did the cache work
+          command: ls ~/app/fargaterunner
 
   package:
     docker:
@@ -100,19 +118,19 @@ workflows:
   version: 2
   build-package-and-deploy:
     jobs:
-       - test-clipfinder
+       - test
 
-       - build-clipfinder:
+       - build-go-lambdas:
           requires: 
-            - test-clipfinder
+            - test
       
-       - check-clipfinder:
+       - check-cache:
           requires:
-            - build-clipfinder
+            - build-go-lambdas
 
        - package:
           requires: 
-            - build-clipfinder
+            - build-go-lambdas
           filters:
             branches:
               only: 
