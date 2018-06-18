@@ -16,6 +16,27 @@ jobs:
       - run:
           name: Run tests
           command: docker-compose -f ./testRunner.yml run clipfinder
+  
+  build-clipfinder:
+    docker:
+      - image: lambci/lambda:build-go1.x
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_remote_docker
+    - run: 
+        name: place clipfinder src in $GOPATH
+        command: cp -R ~/app/clipfinder /go/src/github.com/user/clipfinder
+
+    - run:
+        name: building clipfinder lambda
+        command: cd /go/src/github.com/user/clipfinder && go build github.com/user/clipfinder && zip clipfinder ./clipfinder && cp clipfinder ./bin && rm clipfinder
+    - run:
+        name: checking dir
+        command: ls /go/src/github.com/user/clipfinder/bin
+
+
+
 
   package:
     docker:
@@ -67,9 +88,13 @@ workflows:
     jobs:
        - test-clipfinder
 
-       - package:
+       - build-clipfinder:
           requires: 
             - test-clipfinder
+
+       - package:
+          requires: 
+            - build-clipfinder
           filters:
             branches:
               only: 
