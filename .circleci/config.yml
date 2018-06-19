@@ -69,32 +69,7 @@ jobs:
           paths:
             - clipscraper/clipscraper.zip
   
-  check-cache:
-    docker:
-      - image: lambci/lambda:build-go1.x
-    working_directory: ~/app
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
-      - run:
-          name: Did the cache work
-          command: ls ~/app/clipfinder
-      - run:
-          name: Did the cache work
-          command: ls ~/app/fargaterunner
-      - run:
-          name: Did the cache work
-          command: ls ~/app/clipscraper
-
-  package:
+  build-and-push-clipstitcher-image:
     docker:
       - image: docker:17.10.0-ce-git
     working_directory: ~/app
@@ -125,6 +100,15 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - clipfinder-lambda-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: install make
           command: apk add --update make
@@ -151,12 +135,13 @@ workflows:
        - build-node-lambdas:
           requires: 
             - build-go-lambdas
+          filters:
+            branches:
+              only: 
+                - master
+                - dev
       
-       - check-cache:
-          requires:
-            - build-node-lambdas
-
-       - package:
+       - build-and-push-clipstitcher-image:
           requires: 
             - build-node-lambdas
           filters:
@@ -167,7 +152,7 @@ workflows:
 
        - deploy:
           requires: 
-            - package
+            - build-and-push-clipstitcher-image
           filters:
             branches:
               only: 
