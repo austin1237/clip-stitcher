@@ -1,16 +1,21 @@
 package ffmpeg
 
 import (
+	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
 	"strconv"
-	"time"
+	"strings"
 )
 
-var Logs []byte
+type Service struct {
+	Cmd        *exec.Cmd
+	FileStream io.ReadCloser
+	Logs       io.ReadCloser
+}
 
 // Here's a blog where I found the ffmpeg command to combine videos with a transcode
 //http://www.bugcodemaster.com/article/concatenate-videos-using-ffmpeg
@@ -28,38 +33,79 @@ func buildFFmpegcommand(clipLinks []string) string {
 	return cmdString
 }
 
-func StitchClips(clipLinks []string) (io.ReadCloser, error) {
-	cmd := buildFFmpegcommand(clipLinks)
-	log.Println(cmd)
-	ffmpeg := exec.Command("bash", "-c", cmd)
-
-	fileStream, err := ffmpeg.StdoutPipe()
+func NewFFmpegService(clipLinks []string) (*Service, error) {
+	service := new(Service)
+	cmdTxt := buildFFmpegcommand(clipLinks)
+	service.Cmd = exec.Command("bash", "-c", cmdTxt)
+	fileStream, err := service.Cmd.StdoutPipe()
 	if err != nil {
-		return nil, err
+		return service, err
 	}
-	logs, err := ffmpeg.StderrPipe()
+	service.FileStream = fileStream
+	logs, err := service.Cmd.StderrPipe()
 	if err != nil {
-		return nil, err
+		return service, err
 	}
-	go keepsLogsInMemory(logs)
-	go testShutDown(ffmpeg)
-	err = ffmpeg.Start()
-	if err != nil {
-		fmt.Println("error starting " + cmd)
-		return nil, err
-	}
-
-	return fileStream, nil
-
+	service.Logs = logs
+	return service, nil
 }
 
-func testShutDown(cmd *exec.Cmd) {
-	time.Sleep(45 * time.Second)
-	cmd.Process.Kill()
+func (service Service) Start() (*bytes.Buffer, error) {
+	fmt.Println("start hit")
+	buffer := &bytes.Buffer{}
+	bufferChan := make(chan *bytes.Buffer)
+	errsChan := make(chan error)
+	defer service.Logs.Close()
+	defer service.FileStream.Close()
+	go checkOutputErrs(service.Logs, errsChan)
+	go bufferFileStream(service.FileStream, errsChan, bufferChan)
+	err := service.Cmd.Start()
+	if err != nil {
+		return buffer, err
+	}
+	for i := 0; i < 2; i++ {
+		err := <-errsChan
+		if err != nil {
+			service.Cmd.Process.Kill()
+			fmt.Println("err is " + err.Error())
+			return buffer, err
+		}
+	}
+	buffer = <-bufferChan
+	return buffer, nil
 }
 
-func keepsLogsInMemory(stdErr io.ReadCloser) {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stdErr)
-	Logs = buf.Bytes()
+func checkOutputErrs(stream io.ReadCloser, done chan error) {
+	defer stream.Close()
+	output := ""
+	r := bufio.NewReader(stream)
+	for {
+		line, _, err := r.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			done <- err
+		}
+		lineStr := string(line)
+		lineStrLower := strings.ToLower(lineStr)
+		output = output + lineStr + "\n"
+		if strings.Contains(lineStrLower, "error") {
+			done <- errors.New("Error found in output: " + output)
+		}
+	}
+	done <- nil
+}
+
+func bufferFileStream(fileStream io.Reader, errChan chan error, bufferChan chan *bytes.Buffer) {
+	buffer := bytes.Buffer{}
+	_, err := buffer.ReadFrom(fileStream)
+	if err != nil && err != io.EOF {
+		fmt.Println("err is " + err.Error())
+		buffer.Reset()
+		errChan <- err
+	} else {
+		errChan <- nil
+		bufferChan <- &buffer
+	}
 }
