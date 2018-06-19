@@ -131,6 +131,11 @@ workflows:
        - build-go-lambdas:
           requires: 
             - test
+          filters:
+            branches:
+              only: 
+                - master
+                - dev
       
        - build-node-lambdas:
           requires: 
