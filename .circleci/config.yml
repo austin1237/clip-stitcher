@@ -81,6 +81,9 @@ jobs:
       - restore_cache:
           keys:
             - fargaterunner-lambda-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Did the cache work
           command: ls ~/app/clipfinder
