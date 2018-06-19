@@ -145,7 +145,7 @@ workflows:
           requires: 
             - test
       
-      - build-node-lambdas:
+       - build-node-lambdas:
           requires: 
             - build-go-lambdas
       
