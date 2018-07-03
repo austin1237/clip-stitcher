@@ -89,55 +89,59 @@ EOF
 # This IAM Policy allows the ECS Service to communicate with CLOUDWATCH
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_iam_role_policy" "task_role_policy" {
-  name   = "task_role_policy_${var.name}"
-  role   = "${aws_iam_role.task_role.id}"
-  policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
-}
+# resource "aws_iam_role_policy" "task_role_policy" {
+#   name   = "task_role_policy_${var.name}"
+#   role   = "${aws_iam_role.task_role.id}"
+#   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
+# }
 
-data "aws_iam_policy_document" "ecs_service_policy" {
-  statement {
-    effect    = "Allow"
-    resources = ["*"]
+# data "aws_iam_policy_document" "ecs_service_policy" {
+#   statement {
+#     effect    = "Allow"
+#     resources = ["*"]
 
-    actions = [
-      "cloudwatch:*",
-      "logs:*",
-      "ecs:*",
-      "ec2:*",
-      "SQS:ReceiveMessage",
-      "SQS:DeleteMessage",
-    ]
-  }
+#     actions = [
+#       "cloudwatch:*",
+#       "logs:*",
+#       "ecs:*",
+#       "ec2:*",
+#       "sqs:*",
+#     ]
+#   }
 
-  statement {
-    actions   = ["iam:PassRole"]
-    effect    = "Allow"
-    resources = ["*"]
+#   statement {
+#     actions   = ["iam:PassRole"]
+#     effect    = "Allow"
+#     resources = ["*"]
 
-    condition {
-      test     = "StringLike"
-      variable = "iam:PassedToService"
-      values   = ["ecs-tasks.amazonaws.com"]
-    }
-  }
+#     condition {
+#       test     = "StringLike"
+#       variable = "iam:PassedToService"
+#       values   = ["ecs-tasks.amazonaws.com", "sqs.amazonaws.com"]
+#     }
+#   }
 
-  statement {
-    effect    = "Allow"
-    actions   = ["iam:CreateServiceLinkedRole"]
-    resources = ["*"]
+#   statement {
+#     effect    = "Allow"
+#     actions   = ["iam:CreateServiceLinkedRole"]
+#     resources = ["*"]
 
-    condition {
-      test     = "StringLike"
-      variable = "iam:AWSServiceName"
-      values   = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com"]
-    }
-  }
-}
+#     condition {
+#       test     = "StringLike"
+#       variable = "iam:AWSServiceName"
+#       values   = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com", "sqs.amazonaws.com"]
+#     }
+#   }
+# }
 
 resource "aws_iam_role_policy_attachment" "task-attach" {
   role       = "${aws_iam_role.task_role.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "que-attach" {
+  role       = "${aws_iam_role.task_role.name}"
+  policy_arn = "${var.que_policy}"
 }
 
 resource "aws_iam_role" "task_role" {

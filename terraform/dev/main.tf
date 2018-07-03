@@ -54,13 +54,13 @@ module "clip-links-que" {
 module "clipstitcher" {
   source = "./fargate"
 
-  name      = "clipstitcher-${var.env}"
-  subnet_id = "${module.vpc.subnet_id}"
-
+  name           = "clipstitcher-${var.env}"
+  subnet_id      = "${module.vpc.subnet_id}"
+  que_policy     = "${module.clip-links-que.consumer_policy}"
   image          = "${var.docker_image}"
   docker_version = "${var.docker_version}"
-  cpu            = 1024
-  memory         = 2048
+  cpu            = 512
+  memory         = 1024
   desired_count  = 0
 
   num_env_vars = 3

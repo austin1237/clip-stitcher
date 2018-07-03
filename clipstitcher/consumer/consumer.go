@@ -33,10 +33,16 @@ func NewConsumerService(queEndpoint string, queueURL string) (consumerService, e
 	consumerService := consumerService{}
 	sess := session.Must(session.NewSession())
 	sqsClient := &sqs.SQS{}
+	fmt.Println("queEndPoint is " + queEndpoint)
+	fmt.Println("queURL is " + queueURL)
 	if queEndpoint != "" {
 		sqsClient = sqs.New(sess, aws.NewConfig().WithEndpoint(queEndpoint))
 	} else {
-		sqsClient = sqs.New(sess, aws.NewConfig())
+		fmt.Println("setting up verbose error logs")
+		config := aws.NewConfig()
+		verboseTrigger := true
+		config.CredentialsChainVerboseErrors = &verboseTrigger
+		sqsClient = sqs.New(sess, config)
 	}
 
 	consumerService.QueueURL = &queueURL
@@ -59,13 +65,14 @@ func receiveMessageFromQue(cService consumerService) (*sqs.ReceiveMessageOutput,
 		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
 		err := req.Send()
 		cancel()
+		fmt.Println("err is ")
 		if err == nil && len(resp.Messages) > 0 {
 			return resp, err
 		} else if retry == cService.RetryCount {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			err = errors.New("Max retries reached trying to get sns mesage")
+			err = errors.New("Max retries reached trying to get sqs mesage")
 			return resp, err
 		}
 		time.Sleep(1 * time.Second)
