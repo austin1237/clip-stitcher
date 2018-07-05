@@ -51,7 +51,7 @@ func NewFFmpegService(clipLinks []string) (*Service, error) {
 }
 
 func (service Service) Start() (*bytes.Buffer, error) {
-	fmt.Println("start hit")
+	fmt.Println("ffmpeg start hit")
 	buffer := &bytes.Buffer{}
 	bufferChan := make(chan *bytes.Buffer)
 	errsChan := make(chan error)

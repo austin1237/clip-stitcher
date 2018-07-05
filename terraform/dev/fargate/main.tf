@@ -165,7 +165,7 @@ EOF
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# This IAM Policy allows a lambda to launch an ecs task
+# This IAM Policy that allows a lambda to launch an ecs task
 # ---------------------------------------------------------------------------------------------------------------------
 # resource "aws_iam_role_policy" "lambda_launch_policy" {
 #   name   = "lambda_role_policy_${var.name}"
@@ -201,33 +201,3 @@ data "aws_iam_policy_document" "lambda_launch_document" {
     }
   }
 }
-
-# resource "aws_iam_role" "iam_for_lambda" {
-#   name = "iam_for_lambda_${var.name}"
-
-
-#   assume_role_policy = <<EOF
-# {
-#   "Version": "2012-10-17",
-#   "Statement": [
-#     {
-#       "Action": "sts:AssumeRole",
-#       "Principal": {
-#         "Service": "lambda.amazonaws.com"
-#       },
-#       "Effect": "Allow",
-#       "Sid": ""
-#     },
-#     {
-#       "Sid": "",
-#       "Effect": "Allow",
-#       "Principal": {
-#         "Service": "ecs-tasks.amazonaws.com"
-#       },
-#       "Action": "sts:AssumeRole"
-#     }   
-#   ]
-# }
-# EOF
-# }
-

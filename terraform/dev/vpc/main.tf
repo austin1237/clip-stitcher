@@ -4,7 +4,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_hostnames = true
 
   tags {
-    label = "clipstitcher"
+    label = "${var.name}-vpc"
   }
 }
 
@@ -17,9 +17,13 @@ resource "aws_subnet" "public_subnet_a" {
   map_public_ip_on_launch = true
 
   tags {
-    Name = "clipstitcher-public-subnet"
+    Name = "${var.name}-public-subnet"
   }
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Allow Public Internet Access
+# ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = "${aws_vpc.vpc.id}"
@@ -34,7 +38,7 @@ resource "aws_route_table" "public_routetable" {
   }
 
   tags {
-    label = "clipstitcher-public_routetable"
+    label = "${var.name}-public_routetable"
   }
 }
 

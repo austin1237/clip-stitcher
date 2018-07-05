@@ -33,15 +33,10 @@ func NewConsumerService(queEndpoint string, queueURL string) (consumerService, e
 	consumerService := consumerService{}
 	sess := session.Must(session.NewSession())
 	sqsClient := &sqs.SQS{}
-	fmt.Println("queEndPoint is " + queEndpoint)
-	fmt.Println("queURL is " + queueURL)
 	if queEndpoint != "" {
 		sqsClient = sqs.New(sess, aws.NewConfig().WithEndpoint(queEndpoint))
 	} else {
-		fmt.Println("setting up verbose error logs")
 		config := aws.NewConfig()
-		verboseTrigger := true
-		config.CredentialsChainVerboseErrors = &verboseTrigger
 		sqsClient = sqs.New(sess, config)
 	}
 
