@@ -59,8 +59,8 @@ module "clipstitcher" {
   que_policy     = "${module.clip-links-que.consumer_policy}"
   image          = "${var.docker_image}"
   docker_version = "${var.docker_version}"
-  cpu            = 512
-  memory         = 1024
+  cpu            = 1024
+  memory         = 2048
   desired_count  = 0
 
   num_env_vars = 3

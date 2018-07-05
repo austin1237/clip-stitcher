@@ -47,6 +47,7 @@ resource "aws_ecs_task_definition" "task" {
   cpu                      = "${var.cpu}"
   network_mode             = "awsvpc"
   execution_role_arn       = "${aws_iam_role.task_role.arn}"
+  task_role_arn            = "${aws_iam_role.task_role.arn}"
   requires_compatibilities = ["FARGATE"]
 
   container_definitions = <<EOF
@@ -89,50 +90,49 @@ EOF
 # This IAM Policy allows the ECS Service to communicate with CLOUDWATCH
 # ---------------------------------------------------------------------------------------------------------------------
 
-# resource "aws_iam_role_policy" "task_role_policy" {
-#   name   = "task_role_policy_${var.name}"
-#   role   = "${aws_iam_role.task_role.id}"
-#   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
-# }
+resource "aws_iam_role_policy" "task_role_policy" {
+  name   = "task_role_policy_${var.name}"
+  role   = "${aws_iam_role.task_role.id}"
+  policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
+}
 
-# data "aws_iam_policy_document" "ecs_service_policy" {
-#   statement {
-#     effect    = "Allow"
-#     resources = ["*"]
+data "aws_iam_policy_document" "ecs_service_policy" {
+  statement {
+    effect    = "Allow"
+    resources = ["*"]
 
-#     actions = [
-#       "cloudwatch:*",
-#       "logs:*",
-#       "ecs:*",
-#       "ec2:*",
-#       "sqs:*",
-#     ]
-#   }
+    actions = [
+      "cloudwatch:*",
+      "logs:*",
+      "ecs:*",
+      "ec2:*",
+    ]
+  }
 
-#   statement {
-#     actions   = ["iam:PassRole"]
-#     effect    = "Allow"
-#     resources = ["*"]
+  statement {
+    actions   = ["iam:PassRole"]
+    effect    = "Allow"
+    resources = ["*"]
 
-#     condition {
-#       test     = "StringLike"
-#       variable = "iam:PassedToService"
-#       values   = ["ecs-tasks.amazonaws.com", "sqs.amazonaws.com"]
-#     }
-#   }
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["ecs-tasks.amazonaws.com"]
+    }
+  }
 
-#   statement {
-#     effect    = "Allow"
-#     actions   = ["iam:CreateServiceLinkedRole"]
-#     resources = ["*"]
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:CreateServiceLinkedRole"]
+    resources = ["*"]
 
-#     condition {
-#       test     = "StringLike"
-#       variable = "iam:AWSServiceName"
-#       values   = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com", "sqs.amazonaws.com"]
-#     }
-#   }
-# }
+    condition {
+      test     = "StringLike"
+      variable = "iam:AWSServiceName"
+      values   = ["ecs.amazonaws.com", "spot.amazonaws.com", "spotfleet.amazonaws.com"]
+    }
+  }
+}
 
 resource "aws_iam_role_policy_attachment" "task-attach" {
   role       = "${aws_iam_role.task_role.name}"
