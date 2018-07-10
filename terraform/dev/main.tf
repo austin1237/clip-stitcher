@@ -68,7 +68,7 @@ module "clipstitcher" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Lambdas
+# CREATE LAMBDAS
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clipfinder" {
@@ -120,4 +120,16 @@ module "fargaterunner" {
     CLUSTER_ARN = "${module.clipstitcher.cluster_arn}"
     SUBNET_ID   = "${module.vpc.subnet_id}"
   }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE CLOUDWATCH TIMED LAMBDA EVENT
+# ---------------------------------------------------------------------------------------------------------------------
+module "timed-lambda" {
+  source               = "./cloudwatch-lambda-trigger"
+  start_time           = "cron(30 10 * * ? *)"
+  name                 = "clipfinder-${var.env}-trigger"
+  lambda_function_name = "clipfinder-${var.env}"
+  description          = "The timed trigger for clipfinder-${var.env}"
+  lambda_arn           = "${module.clipfinder.lambda_arn}"
 }
