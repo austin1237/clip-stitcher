@@ -27,17 +27,18 @@ You must have the following installed/configured for this to work correctly<br /
 2. [Docker-Compose](https://docs.docker.com/compose/)
 
 ## Development Environment
-### clipstitcher
-To spin up the development environment with hot reloading enabled run the following command
+
+To build the lambdas and spin up the distributed development environment run the following command
 
 ```bash
-docker-compose -f clipstitcher-compose.yml up
+docker-compose -f lambdaBuilder.yml up  && docker-compose up
 ```
 
-### lambdas
-To build and zip the lambda binary run the following command.
+### Tests
+To run tests use the following command
+
 ```bash
-docker-compose -f lambdas-compose.yml up
+docker-compose -f testRunner.yml up
 ```
 
 ## Deployment

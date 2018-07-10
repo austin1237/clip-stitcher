@@ -60,7 +60,6 @@ func receiveMessageFromQue(cService consumerService) (*sqs.ReceiveMessageOutput,
 		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
 		err := req.Send()
 		cancel()
-		fmt.Println("err is ")
 		if err == nil && len(resp.Messages) > 0 {
 			return resp, err
 		} else if retry == cService.RetryCount {
