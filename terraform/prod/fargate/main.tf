@@ -47,6 +47,7 @@ resource "aws_ecs_task_definition" "task" {
   cpu                      = "${var.cpu}"
   network_mode             = "awsvpc"
   execution_role_arn       = "${aws_iam_role.task_role.arn}"
+  task_role_arn            = "${aws_iam_role.task_role.arn}"
   requires_compatibilities = ["FARGATE"]
 
   container_definitions = <<EOF
@@ -138,6 +139,11 @@ resource "aws_iam_role_policy_attachment" "task-attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "que-attach" {
+  role       = "${aws_iam_role.task_role.name}"
+  policy_arn = "${var.que_policy}"
+}
+
 resource "aws_iam_role" "task_role" {
   name = "task_role_${var.name}"
 
@@ -156,4 +162,42 @@ resource "aws_iam_role" "task_role" {
   ]
 }
 EOF
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# This IAM Policy that allows a lambda to launch an ecs task
+# ---------------------------------------------------------------------------------------------------------------------
+# resource "aws_iam_role_policy" "lambda_launch_policy" {
+#   name   = "lambda_role_policy_${var.name}"
+#   role   = "${aws_iam_role.iam_for_lambda.id}"
+#   policy = "${data.aws_iam_policy_document.lambda_launch_document.json}"
+# }
+
+resource "aws_iam_policy" "lambda_launch_policy" {
+  name   = "${var.name}-lambda-policy"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.lambda_launch_document.json}"
+}
+
+data "aws_iam_policy_document" "lambda_launch_document" {
+  statement {
+    effect    = "Allow"
+    resources = ["*"]
+
+    actions = [
+      "ecs:RunTask",
+    ]
+  }
+
+  statement {
+    actions   = ["iam:PassRole"]
+    effect    = "Allow"
+    resources = ["*"]
+
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["ecs-tasks.amazonaws.com"]
+    }
+  }
 }

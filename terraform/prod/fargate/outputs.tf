@@ -9,3 +9,7 @@ output "cluster_arn" {
 output "service_id" {
   value = "${aws_ecs_service.service.id}"
 }
+
+output "lambda_launch_policy" {
+  value = "${aws_iam_policy.lambda_launch_policy.arn}"
+}
