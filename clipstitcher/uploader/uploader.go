@@ -17,13 +17,22 @@ type YtAuth struct {
 	Expiry       time.Time `json:"expiry"`
 }
 
-func Upload(fileStream io.ReadCloser, authString string, videoDescription string, channelName string) error {
+type Video struct {
+	FileStream       io.Reader
+	VideoDescription string
+	ChannelName      string
+}
+
+func Upload(video Video, authString string) error {
 	ytAuth, err := decodeAuth(authString)
 	if err != nil {
 		return err
 	}
 	authClient := getOAuthClient(ytAuth)
-	uploadToYouTube(fileStream, authClient, videoDescription, channelName)
+	err = uploadToYouTube(video, authClient)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

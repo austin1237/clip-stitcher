@@ -1,0 +1,5 @@
+version: '3'
+services:
+  clipfinder:
+    build: ./clipfinder
+    command: 'go test -v ./...'

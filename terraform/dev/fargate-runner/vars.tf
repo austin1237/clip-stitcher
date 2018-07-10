@@ -13,7 +13,3 @@ variable "task_arn" {
 variable "subnet_id" {
   description = "id of the subnet_id for the fargate task"
 }
-
-variable "start_time" {
-  description = "time the cloudwatch event will trigger the lambda"
-}

@@ -1,3 +1,30 @@
+.PHONEY: destroy_dis
+destroy_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && yes | terraform destroy  -input=false -auto-approve
+
+.PHONY: plan_dis
+plan_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && terraform plan
+
+.PHONY: deploy_dis
+deploy_dis:
+	cd distributed && terraform init -input=false
+	cd distributed && yes | terraform apply  -input=false -auto-approve
+
+.PHONY: plan_local
+plan_local:
+	cd local && rm -f terraform.tfstate 
+	cd local && terraform init -input=false
+	cd local && terraform plan
+
+.PHONY: deploy_local
+deploy_local:
+	dockerize -wait tcp://localstack:4575 -wait tcp://localstack:4576 -timeout 10m
+	cd local && rm -f terraform.tfstate
+	cd local && yes | terraform apply  -input=false -auto-approve
+
 .PHONY: deploy_dev
 deploy_dev:
 	cd dev && rm .terraform -rf
