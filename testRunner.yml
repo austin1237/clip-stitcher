@@ -3,3 +3,10 @@ services:
   clipfinder:
     build: ./clipfinder
     command: 'go test -v ./...'
+    volumes:
+      - ./clipfinder:/go/src/github.com/user/clipfinder
+  clipstitcher:
+    build: ./clipstitcher
+    command: 'go test -v ./...'
+    volumes:
+      - ./clipstitcher:/go/src/github.com/user/clipstitcher
