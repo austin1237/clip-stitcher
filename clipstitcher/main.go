@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/user/clipstitcher/consumer"
+	"github.com/user/clipstitcher/resfilter"
 	"github.com/user/clipstitcher/stitcher"
 )
 
@@ -44,8 +45,12 @@ func main() {
 	consumerService, err := consumer.NewConsumerService(consumerEndpoint, consumerURL)
 	logAndExit(err)
 	clipMessage, err := consumerService.GetMessage()
-	logAndExit(err)
 	fmt.Println("Message found for " + clipMessage.ChannelName)
+	logAndExit(err)
+	filteredVideoLinks, err := resfilter.FilterOutLowRes(clipMessage.VideoLinks)
+	logAndExit(err)
+	fmt.Println("Resoultions filter for " + clipMessage.ChannelName)
+	clipMessage.VideoLinks = filteredVideoLinks
 	err = stitcher.StitchAndUpload(clipMessage, youtubeAuth)
 	logAndExit(err)
 	fmt.Println("Video stitching finished for " + clipMessage.ChannelName)
