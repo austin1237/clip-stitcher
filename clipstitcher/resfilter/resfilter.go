@@ -1,9 +1,10 @@
 package resfilter
 
 import (
-	"errors"
 	"os/exec"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type VideoResGroup struct {
@@ -48,11 +49,19 @@ func FilterOutLowRes(videoLinks []string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
+	bestClips, err := getBestResoultion(groupedClips)
+	if err != nil {
+		return []string{}, err
+	}
+	return bestClips, nil
+}
+
+func getBestResoultion(groupedClips VideoResGroup) ([]string, error) {
 	if len(groupedClips.High) > 1 {
 		return groupedClips.High, nil
 	} else if len(groupedClips.Medium) > 1 {
-		return groupedClips.High, nil
+		return groupedClips.Medium, nil
 	}
-	err = errors.New("No clips found with high enough resoultion")
+	err := errors.New("No clips found with high enough resoultion")
 	return []string{}, err
 }
