@@ -1,9 +1,10 @@
 package resfilter
 
 import (
-	"errors"
 	"os/exec"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type VideoResGroup struct {

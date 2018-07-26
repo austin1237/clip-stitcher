@@ -3,12 +3,13 @@ package ffmpeg
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Service struct {
@@ -67,7 +68,6 @@ func (service Service) Start() (*bytes.Buffer, error) {
 		err := <-errsChan
 		if err != nil {
 			service.Cmd.Process.Kill()
-			fmt.Println("err is " + err.Error())
 			return buffer, err
 		}
 	}

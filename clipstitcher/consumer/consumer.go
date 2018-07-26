@@ -3,9 +3,10 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -114,4 +115,23 @@ func (cService consumerService) DeleteMessage(message ClipMessage) error {
 		return err
 	}
 	return nil
+}
+
+func GetTestMessage() (ClipMessage, error) {
+	cMessage := ClipMessage{}
+	snsWrapper := snsMessage{}
+	rawMessage := `{}`
+
+	err := json.Unmarshal([]byte(rawMessage), &snsWrapper)
+	if err != nil {
+		err = errors.New(err.Error())
+		return cMessage, err
+	}
+	actualMessage := snsWrapper.Message
+	err = json.Unmarshal([]byte(actualMessage), &cMessage)
+	if err != nil {
+		err = errors.New(err.Error())
+		return cMessage, err
+	}
+	return cMessage, err
 }
