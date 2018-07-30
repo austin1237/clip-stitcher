@@ -33,17 +33,17 @@ func StitchAndUpload(clipMessage consumer.ClipMessage, ytAuth string) error {
 	transTotal := time.Since(transStart)
 	fmt.Printf("ffmpeg finished, took %s for %s \n", transTotal, clipMessage.ChannelName)
 	fmt.Printf("Total megabytes of video %d \n", (buffer.Len() / 1000000))
-	// uploadStart := time.Now()
-	// video := uploader.Video{
-	// 	FileStream:       buffer,
-	// 	VideoDescription: clipMessage.VideoDescription,
-	// 	ChannelName:      clipMessage.ChannelName,
-	// }
-	// err := uploader.Upload(video, ytAuth)
-	// if err != nil {
-	// 	return errors.New(err.Error())
-	// }
-	// uploadTotal := time.Since(uploadStart)
-	// fmt.Printf("upload finished, took %s for %s \n", uploadTotal, clipMessage.ChannelName)
+	uploadStart := time.Now()
+	video := uploader.Video{
+		FileStream:       buffer,
+		VideoDescription: clipMessage.VideoDescription,
+		ChannelName:      clipMessage.ChannelName,
+	}
+	err := uploader.Upload(video, ytAuth)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	uploadTotal := time.Since(uploadStart)
+	fmt.Printf("upload finished, took %s for %s \n", uploadTotal, clipMessage.ChannelName)
 	return nil
 }
