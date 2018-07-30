@@ -6,16 +6,16 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
 	"github.com/user/clipstitcher/consumer"
 	"github.com/user/clipstitcher/ffmpeg"
+	"github.com/user/clipstitcher/uploader"
 )
 
 func StitchAndUpload(clipMessage consumer.ClipMessage, ytAuth string) error {
 	retryCount := 1
 	buffer := &bytes.Buffer{}
 	transStart := time.Now()
-	for attempt := 0; retry <= retryCount; attempt++ {
+	for attempt := 0; attempt <= retryCount; attempt++ {
 		ffmpegService, err := ffmpeg.NewFFmpegService(clipMessage.VideoLinks)
 		if err != nil {
 			return errors.New(err.Error())
