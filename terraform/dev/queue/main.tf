@@ -30,6 +30,7 @@ resource "aws_iam_policy" "producer_policy" {
 
 resource "aws_sqs_queue" "consumer" {
   name = "${var.sqs_queue_name}"
+  redrive_policy            = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.consumer_dead_letter.arn}\",\"maxReceiveCount\":1}"
 }
 
 resource "aws_sqs_queue_policy" "aws_sqs_queue_policy" {
@@ -71,6 +72,32 @@ resource "aws_iam_policy" "consumer_policy" {
   name   = "${var.sqs_queue_name}-policy"
   path   = "/"
   policy = "${data.aws_iam_policy_document.consumer_policy_document.json}"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SQS Dead Letter
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_sqs_queue" "consumer_dead_letter" {
+  name = "${var.sqs_queue_name}-dead-letter"
+}
+
+data "aws_iam_policy_document" "consumer_dead_letter_policy_document" {
+  statement {
+    resources = ["${aws_sqs_queue.consumer_dead_letter.arn}"]
+
+    actions = [
+      "SQS:ReceiveMessage",
+      "SQS:DeleteMessage",
+    ]
+
+    effect = "Allow"
+  }
+}
+
+resource "aws_iam_policy" "consumer_dead_letter_policy" {
+  name   = "${var.sqs_queue_name}-dead-letter-policy"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.consumer_dead_letter_policy_document.json}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
