@@ -14,3 +14,7 @@ output "consumer_url" {
 output "consumer_policy" {
   value = "${aws_iam_policy.consumer_policy.arn}"
 }
+
+output "dead_letter_arn" {
+  value = "${aws_sqs_queue.consumer_dead_letter.arn}"
+}
