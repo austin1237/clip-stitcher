@@ -3,53 +3,65 @@ volumes:
   local_terraform_modules:
 services:
 
-  clipstitcher:
-    build: ./clipstitcher
-    command: bash -c "go install . && clipstitcher "
-    volumes:
-      - ./clipstitcher:/go/src/github.com/user/clipstitcher
-    environment:
-      # APP_ENV: "local"
-      YOUTUBE_AUTH: ${YOUTUBE_AUTH}
-      CONSUMER_ENDPOINT: "http://localstack:4576"
-      CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
-      AWS_ACCESS_KEY_ID: "AKEY"
-      AWS_SECRET_ACCESS_KEY: "ASECRET"
-      AWS_REGION: "us-east-1"
+  # clipstitcher:
+  #   build: ./clipstitcher
+  #   command: bash -c "go install . && clipstitcher "
+  #   volumes:
+  #     - ./clipstitcher:/go/src/github.com/user/clipstitcher
+  #   environment:
+  #     # APP_ENV: "local"
+  #     YOUTUBE_AUTH: ${YOUTUBE_AUTH}
+  #     CONSUMER_ENDPOINT: "http://localstack:4576"
+  #     CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
+  #     AWS_ACCESS_KEY_ID: "AKEY"
+  #     AWS_SECRET_ACCESS_KEY: "ASECRET"
+  #     AWS_REGION: "us-east-1"
   
   localstack:
-    image: localstack/localstack:0.8.6
+    image: localstack/localstack:0.8.7
     environment:
-      SERVICES: "sqs,sns"
+      SERVICES: "sns,sqs,dynamodb"
     ports:  
       - "8080:8080"
       - "4575:4575"
       - "4576:4576"
+      - "8000:4569"
     logging:
       driver: none
   
-  clipfinder:
-    image: lambci/lambda:go1.x
-    command: clipfinder
-    environment:
-      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
-      TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
-      PRODUCER_ENDPOINT: "http://localstack:4575"
-      PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-slugs-local"
-    volumes:
-      - ./clipfinder/bin/clipfinder:/var/task/clipfinder
+  # clipfinder:
+  #   image: lambci/lambda:go1.x
+  #   command: clipfinder
+  #   environment:
+  #     TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+  #     TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+  #     PRODUCER_ENDPOINT: "http://localstack:4575"
+  #     PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-slugs-local"
+  #   volumes:
+  #     - ./clipfinder/bin/clipfinder:/var/task/clipfinder
 
-  clipscraper:
+  # clipscraper:
+  #   image: lambci/lambda:nodejs8.10
+  #   command: index.handler
+  #   environment:
+  #     PRODUCER_ENDPOINT: "http://localstack:4575"
+  #     PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-links-local"
+  #     CONSUMER_ENDPOINT: "http://localstack:4576"
+  #     CONSUMER_URL: "http://localstack:4576/queue/clip-slugs-local"
+  #   volumes:
+  #     - ./clipscraper:/var/task/
+
+  archiver:
     image: lambci/lambda:nodejs8.10
     command: index.handler
     environment:
-      PRODUCER_ENDPOINT: "http://localstack:4575"
-      PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-links-local"
       CONSUMER_ENDPOINT: "http://localstack:4576"
-      CONSUMER_URL: "http://localstack:4576/queue/clip-slugs-local"
+      CONSUMER_URL: "http://localstack:4576/queue/mock-dead-letter"
+      DB_ENDPOINT: "http://localstack:4569"
+      DB_TABLE: "FailedMessages"
     volumes:
-      - ./clipscraper:/var/task/
-      
+      - ./archiver:/var/task/
+         
   terraform:
     build: ./terraform
     entrypoint: make
@@ -67,4 +79,13 @@ services:
       TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
     logging:
       driver: none
+  
+  mockdata:
+    build: ./mockdata
+    volumes:
+      - ./mockdata:/app
+      - /app/node_modules
+    environment:
+      SQS_ENDPOINT: "http://localstack:4576"
+      QUE_URL: "http://localstack:4576/queue/mock-dead-letter"
   
