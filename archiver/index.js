@@ -17,7 +17,9 @@ main = async () => {
         let message = await consumer.getMessage()
         console.log(`message recevied from dead letter`);
         validator.validateMessage(message)
+        console.log('message validated')
         let dbItem = messageAdapter.adaptQueToDb(consumerUrl, dbTableName, message)
+        console.log('message adapted')
         await db.saveMessage(dbItem)
         console.log("message saved in db")
         await consumer.deleteMessage(message)

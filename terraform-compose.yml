@@ -4,14 +4,13 @@ services:
     build: ./terraform
     entrypoint: make
     volumes:
-      - ./lambdas:/lambdas
       - ./terraform:/terraform
       - ~/.aws:/root/.aws
+      - ./clipfinder:/clipfinder
+      - ./clipscraper:/clipscraper
+      - ./fargaterunner:/fargaterunner
+      - ./archiver:/archiver
     environment:
       TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
       TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
-      TF_VAR_YOUTUBE_CLIENT_ID_DEV: ${YOUTUBE_CLIENT_ID}
-      TF_VAR_YOUTUBE_SECRET_DEV: ${YOUTUBE_SECRET}
-      TF_VAR_YOUTUBE_ACCESS_TOKEN_DEV: ${YOUTUBE_ACCESS_TOKEN}
-      TF_VAR_YOUTUBE_REFRESH_TOKEN_DEV: $YOUTUBE_REFRESH_TOKEN}
-      TF_VAR_YOUTUBE_EXPIRY_DEV: ${YOUTUBE_EXPIRY}
+      TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
