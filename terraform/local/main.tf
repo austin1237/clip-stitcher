@@ -33,8 +33,3 @@ module "failed-message-db" {
   source         = "./failed-message-db"
   name = "failed-message-local"
 }
-
-
-resource  "aws_sqs_queue" "mock_dead_letter" {
-  name = "mock-dead-letter"
-}

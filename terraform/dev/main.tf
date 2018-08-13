@@ -16,7 +16,7 @@ terraform {
 }
 
 provider "aws" {
-  version = "1.22"
+  version = "1.31.0"
   region  = "${var.region}"
 }
 
@@ -38,6 +38,7 @@ module "clip-slugs-que" {
   sqs_queue_name = "clip-slugs-sqs-${var.env}"
   sns_topic_name = "clip-slugs-sns-${var.env}"
   lambda_arn     = "${module.clipscraper.lambda_arn}"
+  archiver_arn =   "${module.clipslugs-archiver.lambda_arn}"
 }
 
 module "clip-links-que" {
@@ -45,6 +46,7 @@ module "clip-links-que" {
   sqs_queue_name = "clip-links-sqs-${var.env}"
   sns_topic_name = "clip-links-sns-${var.env}"
   lambda_arn     = "${module.fargaterunner.lambda_arn}"
+  archiver_arn =   "${module.cliplinks-archiver.lambda_arn}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
