@@ -14,10 +14,20 @@ services:
 
   clipscraper:
     build: ./clipscraper
-    command: bash -c "zip -r clipscraper.zip ."
+    command: bash -c "npm install && zip -r clipscraper.zip ."
     volumes:
       - ./clipscraper:/app
     environment:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
     logging:
       driver: none
+
+  archiver:
+    build: ./archiver
+    command: bash -c "npm install && zip -r archiver.zip ."
+    volumes:
+      - ./archiver:/app
+    logging:
+      driver: none
+    
+

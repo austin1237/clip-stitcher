@@ -13,6 +13,7 @@ provider "aws" {
   endpoints {
     sqs = "http://localstack:4576"
     sns = "http://localstack:4575"
+    dynamodb = "http://localstack:4569"
   }
 }
 
@@ -26,4 +27,9 @@ module "clip-links-que" {
   source         = "./queue"
   sqs_queue_name = "clip-links-${var.env}"
   sns_topic_name = "clip-links-${var.env}"
+}
+
+module "failed-message-db" {
+  source         = "./failed-message-db"
+  name = "failed-message-local"
 }

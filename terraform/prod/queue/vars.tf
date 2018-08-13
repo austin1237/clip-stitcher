@@ -9,3 +9,7 @@ variable "sns_topic_name" {
 variable "lambda_arn" {
   description = "arn of the lambda that sns will invoke"
 }
+
+variable "archiver_arn" {
+  description = "arn of the archiver lambda that will consume the dead-letter que"
+}

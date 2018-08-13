@@ -16,7 +16,7 @@ terraform {
 }
 
 provider "aws" {
-  version = "1.22"
+  version = "1.31.0"
   region  = "${var.region}"
 }
 
@@ -38,6 +38,7 @@ module "clip-slugs-que" {
   sqs_queue_name = "clip-slugs-sqs-${var.env}"
   sns_topic_name = "clip-slugs-sns-${var.env}"
   lambda_arn     = "${module.clipscraper.lambda_arn}"
+  archiver_arn =   "${module.clipslugs-archiver.lambda_arn}"
 }
 
 module "clip-links-que" {
@@ -45,6 +46,7 @@ module "clip-links-que" {
   sqs_queue_name = "clip-links-sqs-${var.env}"
   sns_topic_name = "clip-links-sns-${var.env}"
   lambda_arn     = "${module.fargaterunner.lambda_arn}"
+  archiver_arn =   "${module.cliplinks-archiver.lambda_arn}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -68,7 +70,7 @@ module "clipstitcher" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE LAMBDAS
+# LAMBDAS
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clipfinder" {
@@ -85,6 +87,36 @@ module "clipfinder" {
     TWITCH_CLIENT_ID    = "${var.TWITCH_CLIENT_ID_DEV}"
     TWITCH_CHANNEL_NAME = "${var.TWITCH_CHANNEL_NAME_DEV}"
     PRODUCER_ARN        = "${module.clip-slugs-que.producer_arn}"
+  }
+}
+
+module "clipslugs-archiver" {
+  source         = "./lambda"
+  zip_location   = "../../archiver/archiver.zip"
+  name           = "clipslugs-archiver-${var.env}"
+  policy_count   = 2
+  iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-slugs-que.dead_letter_consumer_policy}"]
+  handler        = "index.handler"
+  run_time       = "nodejs8.10"
+
+  env_vars = {
+    CONSUMER_URL = "${module.clip-slugs-que.dead_letter_url}"
+    DB_TABLE = "${module.failed_message_db.table_name}"
+  }
+}
+
+module "cliplinks-archiver" {
+  source         = "./lambda"
+  zip_location   = "../../archiver/archiver.zip"
+  name           = "cliplinks-archiver-${var.env}"
+  policy_count   = 2
+  iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-links-que.dead_letter_consumer_policy}"]
+  handler        = "index.handler"
+  run_time       = "nodejs8.10"
+
+  env_vars = {
+    CONSUMER_URL = "${module.clip-links-que.dead_letter_url}"
+    DB_TABLE = "${module.failed_message_db.table_name}"
   }
 }
 
@@ -132,4 +164,15 @@ module "timed-lambda" {
   lambda_function_name = "clipfinder-${var.env}"
   description          = "The timed trigger for clipfinder-${var.env}"
   lambda_arn           = "${module.clipfinder.lambda_arn}"
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DynamoDb Table that will store all messages sent to a dead-letter
+# ---------------------------------------------------------------------------------------------------------------------
+module "failed_message_db" {
+   source = "./dynamodb"
+   table_name = "FailedMessages-${var.env}"
+   hash_key = "QueName"
+   range_key = "MessageID"
 }

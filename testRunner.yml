@@ -10,3 +10,9 @@ services:
     command: 'go test -v ./...'
     volumes:
       - ./clipstitcher:/go/src/github.com/user/clipstitcher
+  archiver:
+    build: './archiver'
+    command: bash -c 'mocha'
+    volumes:
+      - ./archiver:/app
+

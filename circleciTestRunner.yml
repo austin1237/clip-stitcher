@@ -6,3 +6,6 @@ services:
   clipstitcher:
     build: ./clipstitcher
     command: 'go test -v ./...'
+  archiver:
+    build: ./archiver
+    command: bash -c 'mocha'
