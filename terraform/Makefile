@@ -19,9 +19,14 @@ plan_local:
 	cd local && terraform init -input=false
 	cd local && terraform plan
 
+.PHONY: init_local
+init_local:
+	cd local && terraform init -input=false
+
 .PHONY: deploy_local
 deploy_local:
-	dockerize -wait tcp://localstack:4575 -wait tcp://localstack:4576 -timeout 10m
+	cd local && terraform init -input=false
+	dockerize -wait tcp://localstack:4575 -wait tcp://localstack:4576 -wait tcp://localstack:4569 -timeout 10m
 	cd local && rm -f terraform.tfstate
 	cd local && yes | terraform apply  -input=false -auto-approve
 

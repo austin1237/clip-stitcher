@@ -9,7 +9,6 @@ services:
     volumes:
       - ./clipstitcher:/go/src/github.com/user/clipstitcher
     environment:
-      # APP_ENV: "local"
       YOUTUBE_AUTH: ${YOUTUBE_AUTH}
       CONSUMER_ENDPOINT: "http://localstack:4576"
       CONSUMER_URL: "http://localstack:4576/queue/clip-links-local"
@@ -18,13 +17,14 @@ services:
       AWS_REGION: "us-east-1"
   
   localstack:
-    image: localstack/localstack:0.8.6
+    image: localstack/localstack:0.8.7
     environment:
-      SERVICES: "sqs,sns"
+      SERVICES: "sns,sqs,dynamodb"
     ports:  
       - "8080:8080"
       - "4575:4575"
       - "4576:4576"
+      - "8000:4569"
     logging:
       driver: none
   
@@ -49,22 +49,24 @@ services:
       CONSUMER_URL: "http://localstack:4576/queue/clip-slugs-local"
     volumes:
       - ./clipscraper:/var/task/
-      
+
+  archiver:
+    image: lambci/lambda:nodejs8.10
+    command: index.handler
+    environment:
+      DB_ENDPOINT: "http://localstack:4569"
+      DB_TABLE: "FailedMessages"
+      APP_ENV: "local"
+    volumes:
+      - ./archiver:/var/task/
+         
   terraform:
     build: ./terraform
     entrypoint: make
     command: deploy_local
     volumes:
-      - ./clipfinder:/clipfinder
-      - ./clipscraper:/clipscraper
-      - ./fargaterunner:/fargaterunner
       - ./terraform:/terraform
       - local_terraform_modules:/terraform/local/.terraform
-      - ~/.aws:/root/.aws
-    environment:
-      TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
-      TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
-      TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
     logging:
       driver: none
   
