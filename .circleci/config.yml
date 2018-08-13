@@ -82,7 +82,7 @@ jobs:
           key: clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - clipscraper/clipscraper.zip
-      -save_cache:
+      - save_cache:
           key: archiver-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - archiver/archiver.zip
