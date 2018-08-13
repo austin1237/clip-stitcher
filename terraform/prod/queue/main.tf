@@ -88,6 +88,7 @@ data "aws_iam_policy_document" "consumer_dead_letter_policy_document" {
     actions = [
       "SQS:ReceiveMessage",
       "SQS:DeleteMessage",
+      "SQS:GetQueueAttributes"
     ]
 
     effect = "Allow"
@@ -98,6 +99,16 @@ resource "aws_iam_policy" "consumer_dead_letter_policy" {
   name   = "${var.sqs_queue_name}-dead-letter-policy"
   path   = "/"
   policy = "${data.aws_iam_policy_document.consumer_dead_letter_policy_document.json}"
+}
+# ---------------------------------------------------------------------------------------------------------------------
+# SQS -> Lambda Event Subscription
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_lambda_event_source_mapping" "dead_letter_sub" {
+  batch_size        = 1
+  event_source_arn  = "${aws_sqs_queue.consumer_dead_letter.arn}"
+  enabled           = true
+  function_name     = "${var.archiver_arn}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
