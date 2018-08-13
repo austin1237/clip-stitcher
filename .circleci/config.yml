@@ -72,10 +72,21 @@ jobs:
       - run:
           name: zip clipscraper
           command: cd clipscraper && zip -r clipscraper.zip .
+      - run: 
+          name: install archiver dependencies
+          command: cd archiver && npm install
+      - run:
+          name: zip archiver
+          command: cd archiver && zip -r archiver.zip .
       - save_cache:
           key: clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - clipscraper/clipscraper.zip
+      -save_cache:
+          key: archiver-lambda-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - archiver/archiver.zip
+
   
   build-and-push-clipstitcher-image:
     docker:
@@ -117,6 +128,9 @@ jobs:
       - restore_cache:
           keys:
             - clipscraper-lambda-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache:
+          keys:
+            - archiver-lambda-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: install make
           command: apk add --update make
