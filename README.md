@@ -1,6 +1,7 @@
 # clip-stitcher
 [![CircleCI](https://circleci.com/gh/austin1237/clip-stitcher.svg?style=svg)](https://circleci.com/gh/austin1237/clip-stitcher)<br />
 A worker process that once a day combines and archives popular stream clips.
+![architecture](https://user-images.githubusercontent.com/1394341/44130144-4bf5db72-a009-11e8-9852-ab8fc132f1c0.png)
 ## Why does this repo exist?
 1. Twitch's clip api only shows the most popular clips for the past 24 hours and the the current week. So if you want to know what clips were popular yesterday they're lost to time, if they dont appear on the most popular for the week.
 
