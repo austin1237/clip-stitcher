@@ -7,6 +7,8 @@ variable "TWITCH_CLIENT_ID_DEV" {}
 variable "TWITCH_CHANNEL_NAME_DEV" {}
 variable "YOUTUBE_AUTH_DEV" {}
 
+variable "LOG_DNA_KEY_DEV" {}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.

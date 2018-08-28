@@ -59,6 +59,15 @@ services:
       APP_ENV: "local"
     volumes:
       - ./archiver:/var/task/
+  
+  aggregator:
+    image: lambci/lambda:nodejs8.10
+    command: index.handler
+    environment:
+      APP_ENV: "local"
+      LOG_DNA_KEY: ${LOG_DNA_KEY}
+    volumes:
+      - ./aggregator:/var/task/
          
   terraform:
     build: ./terraform

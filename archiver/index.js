@@ -8,7 +8,7 @@ const dbTableName = process.env.DB_TABLE;
 const dbEndPoint = process.env.DB_ENDPOINT;
 const appENV = process.env.APP_ENV;
 
-main = async (event) => {
+let main = async (event) => {
     const db = new DBClass(dbEndPoint);
     try {
         console.log("validating event")

@@ -10,7 +10,9 @@ services:
       - ./clipscraper:/clipscraper
       - ./fargaterunner:/fargaterunner
       - ./archiver:/archiver
+      - ./aggregator:/aggregator
     environment:
       TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
       TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
       TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
+      TF_VAR_LOG_DNA_KEY_DEV: ${LOG_DNA_KEY}

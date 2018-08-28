@@ -38,7 +38,7 @@ module "clip-slugs-que" {
   sqs_queue_name = "clip-slugs-sqs-${var.env}"
   sns_topic_name = "clip-slugs-sns-${var.env}"
   lambda_arn     = "${module.clipscraper.lambda_arn}"
-  archiver_arn =   "${module.clipslugs-archiver.lambda_arn}"
+  archiver_arn =   "${module.archiver.lambda_arn}"
 }
 
 module "clip-links-que" {
@@ -46,7 +46,7 @@ module "clip-links-que" {
   sqs_queue_name = "clip-links-sqs-${var.env}"
   sns_topic_name = "clip-links-sns-${var.env}"
   lambda_arn     = "${module.fargaterunner.lambda_arn}"
-  archiver_arn =   "${module.cliplinks-archiver.lambda_arn}"
+  archiver_arn =   "${module.archiver.lambda_arn}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -89,33 +89,16 @@ module "clipfinder" {
     PRODUCER_ARN        = "${module.clip-slugs-que.producer_arn}"
   }
 }
-
-module "clipslugs-archiver" {
+module "archiver" {
   source         = "./lambda"
   zip_location   = "../../archiver/archiver.zip"
-  name           = "clipslugs-archiver-${var.env}"
-  policy_count   = 2
-  iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-slugs-que.dead_letter_consumer_policy}"]
+  name           = "archiver-${var.env}"
+  policy_count   = 3
+  iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-links-que.dead_letter_consumer_policy}", "${module.clip-slugs-que.dead_letter_consumer_policy}"]
   handler        = "index.handler"
   run_time       = "nodejs8.10"
 
   env_vars = {
-    CONSUMER_URL = "${module.clip-slugs-que.dead_letter_url}"
-    DB_TABLE = "${module.failed_message_db.table_name}"
-  }
-}
-
-module "cliplinks-archiver" {
-  source         = "./lambda"
-  zip_location   = "../../archiver/archiver.zip"
-  name           = "cliplinks-archiver-${var.env}"
-  policy_count   = 2
-  iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-links-que.dead_letter_consumer_policy}"]
-  handler        = "index.handler"
-  run_time       = "nodejs8.10"
-
-  env_vars = {
-    CONSUMER_URL = "${module.clip-links-que.dead_letter_url}"
     DB_TABLE = "${module.failed_message_db.table_name}"
   }
 }
@@ -175,4 +158,31 @@ module "failed_message_db" {
    table_name = "FailedMessages-${var.env}"
    hash_key = "QueName"
    range_key = "MessageID"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Log Aggregation
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "log_aggregation" {
+  source = "./cloudwatch-log-sub"
+  region = "${var.region}"
+  log_group_count   = 1
+  log_group_name = ["${module.archiver.log_group_name}"]
+  aggregator_arn = "${module.aggregator.lambda_arn}"
+}
+
+module "aggregator" {
+  source         = "./lambda"
+  zip_location   = "../../aggregator/aggregator.zip"
+  name           = "aggregator-${var.env}"
+  policy_count   = 1
+  iam_policy_arn = ["${module.clipstitcher.lambda_launch_policy}"]
+  handler        = "index.handler"
+  run_time       = "nodejs8.10"
+  timeout        = 100
+
+  env_vars = {
+    LOG_DNA_KEY    = "${var.LOG_DNA_KEY_DEV}"
+  }
 }

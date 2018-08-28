@@ -2,10 +2,7 @@
   "name": "-service",
   "version": "1.0.0",
   "description": "Puppeteer scraper",
-  "main": "api.js",
-  "scripts": {
-    "start": "node main.js"
-  },
+  "main": "index.js",
   "dependencies": {
     "aws-sdk": "2.243.1"
   },

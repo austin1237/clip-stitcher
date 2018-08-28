@@ -29,5 +29,13 @@ services:
       - ./archiver:/app
     logging:
       driver: none
+  
+  aggregator:
+    build: ./aggregator
+    command: bash -c "npm install && zip -r aggregator.zip ."
+    volumes:
+      - ./aggregator:/app
+    logging:
+      driver: none
     
 

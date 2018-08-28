@@ -1,0 +1,10 @@
+{
+  "name": "aggregator",
+  "version": "1.0.0",
+  "description": "ships cloudwatchlogs to a log aggreation service",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "0.18.0",
+    "zlib": "1.0.5"
+  }
+}
