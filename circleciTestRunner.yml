@@ -9,3 +9,6 @@ services:
   archiver:
     build: ./archiver
     command: bash -c 'mocha'
+  aggregator:
+    build: './aggregator'
+    command: bash -c 'mocha'

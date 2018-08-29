@@ -1,6 +1,7 @@
-const axios = require('axios');
 const zlib = require('zlib');
 const testLog = require('testLog');
+const logAdapter = require('./adapters/logAdapter.js');
+const logService = require('./services/logService.js');
 
 // env vars
 const appENV = process.env.APP_ENV;
@@ -8,8 +9,8 @@ const logDnaKey = process.env.LOG_DNA_KEY;
 
 main = async (cloudWatchLog) => {
     // validate here
-    let payload = transformCWToLD(cloudWatchLog);
-    return sendLogsOff(payload, logDnaKey);
+    let payload = logAdapter.transformCWToLD(cloudWatchLog);
+    return logService.sendLogsOff(payload, logDnaKey);
 }
 
 exports.handler = async(event, context) => {
@@ -39,46 +40,5 @@ let decompressEvent = (payload) =>{
     })
 }
 
-let sendLogsOff = async (payload, logDnaKey) => {
-    const axiosClient = axios.create({
-        baseURL: 'https://logs.logdna.com/logs/ingest?hostname=aws',
-        timeout: 10000,
-        headers: {'apikey': logDnaKey}
-    });
-    return axiosClient.post("", payload)
-}
 
-let transformCWToLD = (logs) => {
-    let transformedLd= {};
-    let ldLines = [];
-    let cwLines = logs.logEvents;
-    let appStrArr = logs.logGroup.split("/");
-    let appName = appStrArr[appStrArr.length -1];
-    cwLines.forEach(function(cwLine) {
-        // dunno what to do with cwLine.timestamp
-       let level = detectLevel(cwLine.message);
-       let ldLine = {
-            line: cwLine.message,
-            app: appName,
-            level: level,
-            meta: {}
-        }
-        ldLines.push(ldLine);
-    });
-    transformedLd.lines = ldLines;
-    return transformedLd
-}
 
-let detectLevel = (logText) => {
-    let level = "INFO";
-    let logTextLower = logText.toLowerCase();
-    if (logTextLower.includes("error")){
-        level = "ERROR";
-    }
-
-    if (logTextLower.includes("retry")){
-        level = "WARN";
-    }
-
-    return level
-}

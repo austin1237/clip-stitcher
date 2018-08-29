@@ -15,4 +15,9 @@ services:
     command: bash -c 'mocha'
     volumes:
       - ./archiver:/app
+  aggregator:
+    build: './aggregator'
+    command: bash -c 'mocha'
+    volumes:
+      - ./aggregator:/app
 
