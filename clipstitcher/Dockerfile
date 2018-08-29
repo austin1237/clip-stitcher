@@ -7,7 +7,7 @@ RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/down
 #Install ffmpeg
 RUN apt-get install xz-utils
 RUN mkdir /usr/local/bin/ffmpeg
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -P /usr/local/bin/ffmpeg
+RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -P /usr/local/bin/ffmpeg --no-check-certificate
 RUN tar xf /usr/local/bin/ffmpeg/ffmpeg-release-64bit-static.tar.xz -C /usr/local/bin/ffmpeg
 RUN mv  -v /usr/local/bin/ffmpeg/ffmpeg-4.0.2-64bit-static/* /usr/local/bin/ffmpeg/
 
