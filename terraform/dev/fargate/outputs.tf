@@ -15,5 +15,5 @@ output "lambda_launch_policy" {
 }
 
 output "log_group_name" {
-  value = "${}"
+  value = "${aws_cloudwatch_log_group.ecs_logs.name}"
 }
