@@ -167,8 +167,8 @@ module "failed_message_db" {
 module "log_aggregation" {
   source = "./cloudwatch-log-sub"
   region = "${var.region}"
-  log_group_count   = 1
-  log_group_name = ["${module.archiver.log_group_name}"]
+  log_group_count   = 4
+  log_group_name = ["${module.archiver.log_group_name}", "${module.fargaterunner.log_group_name}", "${module.clipscraper.log_group_name}", "${module.clipfinder.log_group_name}"]
   aggregator_arn = "${module.aggregator.lambda_arn}"
 }
 

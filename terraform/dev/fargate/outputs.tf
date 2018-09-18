@@ -13,3 +13,7 @@ output "service_id" {
 output "lambda_launch_policy" {
   value = "${aws_iam_policy.lambda_launch_policy.arn}"
 }
+
+output "log_group_name" {
+  value = "${}"
+}

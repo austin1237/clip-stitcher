@@ -63,3 +63,9 @@ resource "aws_iam_role_policy_attachment" "log-policy-attachment" {
   role       = "${aws_iam_role.iam_for_lambda.name}"
   policy_arn = "${aws_iam_policy.log_policy.arn}"
 }
+
+
+resource "aws_cloudwatch_log_group" "lambda-log-group" {
+  name = "/aws/lambda/${var.name}"
+  retention_in_days = 14
+}
