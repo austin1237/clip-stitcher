@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,10 +21,10 @@ import (
 
 var (
 	//ENV VARIABLES
-	twitchClientID    string
-	twitchChannelName string
-	producerArn       string
-	producerEndpoint  string
+	twitchClientID     string
+	twitchChannelNames string
+	producerArn        string
+	producerEndpoint   string
 )
 
 func init() {
@@ -33,8 +34,8 @@ func init() {
 		os.Exit(1)
 	}
 
-	twitchChannelName = os.Getenv("TWITCH_CHANNEL_NAME")
-	if twitchChannelName == "" {
+	twitchChannelNames = os.Getenv("TWITCH_CHANNEL_NAME")
+	if twitchChannelNames == "" {
 		fmt.Println("TWITCH_CHANNEL_NAME ENV var was not set.")
 		os.Exit(1)
 	}
@@ -49,20 +50,24 @@ func init() {
 }
 
 func HandleRequest(ctx context.Context, event events.S3Event) (string, error) {
-	twitchService := twitch.NewTwitchService(twitchChannelName, 10, twitchClientID)
-	preparedClips, err := twitchService.GetClips()
-	if err != nil {
-		log.Fatal(err.Error())
-		return "", err
+	channels := strings.Split(twitchChannelNames, ",")
+	for _, channelName := range channels {
+		twitchService := twitch.NewTwitchService(channelName, 10, twitchClientID)
+		preparedClips, err := twitchService.GetClips()
+		if err != nil {
+			log.Fatal(err.Error())
+			return "", err
+		}
+		pService := producer.NewProducerService(producerEndpoint, producerArn)
+		pService.CheckSubscriptions(producerEndpoint)
+		err = pService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, channelName)
+		if err != nil {
+			log.Fatal(err.Error())
+			return "", err
+		}
+		fmt.Println("Message Sent for " + channelName)
 	}
-	pService := producer.NewProducerService(producerEndpoint, producerArn)
-	pService.CheckSubscriptions(producerEndpoint)
-	err = pService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, twitchChannelName)
-	if err != nil {
-		log.Fatal(err.Error())
-		return "", err
-	}
-	return "Message Sent", nil
+	return "All channel messages sent", nil
 }
 
 func main() {
