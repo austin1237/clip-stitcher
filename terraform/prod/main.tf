@@ -134,6 +134,8 @@ module "clipscraper" {
   env_vars = {
     PRODUCER_ARN = "${module.clip-links-que.producer_arn}"
     CONSUMER_URL = "${module.clip-slugs-que.consumer_url}"
+    CONSUMER_WAIT_TIME = 5
+    CONSUMER_RETRY_COUNT = 10
   }
 }
 
