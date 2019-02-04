@@ -7,12 +7,24 @@ const consumerUrl = process.env.CONSUMER_URL;
 const consumerEndpoint = process.env.CONSUMER_ENDPOINT;
 const producerArn =  process.env.PRODUCER_ARN;
 const producerEndpoint = process.env.PRODUCER_ENDPOINT;
+let consumerRetryCount = process.env.CONSUMER_RETRY_COUNT;
+let consumerWaitTime = process.env.CONSUMER_WAIT_TIME;
+
+if (!consumerWaitTime){
+    console.log("CONSUMER_WAIT_TIME is not set defaulting to 5 seconds");
+    consumerWaitTime = 5;
+}
+
+if (!consumerRetryCount){
+    console.log("CONSUMER_RETRY_COUNT is not set defaulting to 5 attempts")
+    consumerRetryCount = 5;
+}
 
 main = async () => {
     console.log('scraper started')
-    const producer = new ProducerClass(producerArn, producerEndpoint)
-    const consumer = new ConsumerClass(consumerUrl, consumerEndpoint) 
-    const scraper = await ScraperClass.build()
+    const producer = new ProducerClass(producerArn, producerEndpoint);
+    const consumer = new ConsumerClass(consumerUrl, consumerEndpoint, consumerWaitTime, consumerRetryCount); 
+    const scraper = await ScraperClass.build();
     console.log('chrome unzipped')
     let message = {}
     try {
