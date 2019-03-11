@@ -34,15 +34,15 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clip-slugs-que" {
-  source         = "./queue"
+  source         = "./sqs-queue"
   sqs_queue_name = "clip-slugs-sqs-${var.env}"
-  sns_topic_name = "clip-slugs-sns-${var.env}"
   lambda_arn     = "${module.clipscraper.lambda_arn}"
+  lambda_timeout = "${module.clipscraper.timeout}"
   archiver_arn =   "${module.clipslugs-archiver.lambda_arn}"
 }
 
 module "clip-links-que" {
-  source         = "./queue"
+  source         = "./sqs-and-sns-queue"
   sqs_queue_name = "clip-links-sqs-${var.env}"
   sns_topic_name = "clip-links-sns-${var.env}"
   lambda_arn     = "${module.fargaterunner.lambda_arn}"
@@ -81,12 +81,13 @@ module "clipfinder" {
   iam_policy_arn = ["${module.clip-slugs-que.producer_policy}"]
   handler        = "clipfinder"
   run_time       = "go1.x"
-  timeout        = 100
+  timeout        = 300
+  memory_size    = 1024
 
   env_vars = {
     TWITCH_CLIENT_ID    = "${var.TWITCH_CLIENT_ID_DEV}"
     TWITCH_CHANNEL_NAME = "${var.TWITCH_CHANNEL_NAME_DEV}"
-    PRODUCER_ARN        = "${module.clip-slugs-que.producer_arn}"
+    PRODUCER_URL        = "${module.clip-slugs-que.sqs_url}"
   }
 }
 
@@ -128,14 +129,11 @@ module "clipscraper" {
   iam_policy_arn = ["${module.clip-slugs-que.consumer_policy}", "${module.clip-links-que.producer_policy}"]
   handler        = "index.handler"
   run_time       = "nodejs8.10"
-  memory_size    = 512
-  timeout        = 100
+  memory_size    = 1024
+  timeout        = 180
 
   env_vars = {
     PRODUCER_ARN = "${module.clip-links-que.producer_arn}"
-    CONSUMER_URL = "${module.clip-slugs-que.consumer_url}"
-    CONSUMER_WAIT_TIME = 5
-    CONSUMER_RETRY_COUNT = 10
   }
 }
 

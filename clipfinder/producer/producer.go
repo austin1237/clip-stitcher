@@ -1,7 +1,6 @@
 package producer
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
 type clipMessage struct {
@@ -19,52 +18,26 @@ type clipMessage struct {
 }
 
 type producerService struct {
-	SnsClient    *sns.SNS
-	TopicArn     *string
-	RetriesCount int
+	SqsClient  *sqs.SQS
+	QueueURL   *string
+	RetryCount int
 }
 
-func NewProducerService(endpoint string, arn string) producerService {
-	pService := producerService{}
+func NewProducerService(queEndpoint string, queueURL string) producerService {
+	producerService := producerService{}
 	sess := session.Must(session.NewSession())
-	snsClient := &sns.SNS{}
-	if endpoint != "" {
-		snsClient = sns.New(sess, aws.NewConfig().WithEndpoint(endpoint))
+	sqsClient := &sqs.SQS{}
+	if queEndpoint != "" {
+		sqsClient = sqs.New(sess, aws.NewConfig().WithEndpoint(queEndpoint))
 	} else {
-		snsClient = sns.New(sess, aws.NewConfig())
+		config := aws.NewConfig()
+		sqsClient = sqs.New(sess, config)
 	}
 
-	pService.SnsClient = snsClient
-	pService.TopicArn = &arn
-	pService.RetriesCount = 30
-	return pService
-}
-
-func dummyStub() error {
-	return errors.New("Test error")
-}
-
-func (pService producerService) CheckSubscriptions(customEndPoint string) error {
-	check := &sns.ListSubscriptionsByTopicInput{
-		TopicArn: pService.TopicArn,
-	}
-
-	for retry := 1; retry <= pService.RetriesCount; retry++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-		req, resp := pService.SnsClient.ListSubscriptionsByTopicRequest(check)
-		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
-		err := req.Send()
-		cancel()
-		if err == nil && len(resp.Subscriptions) > 0 {
-			return nil
-		} else if retry == pService.RetriesCount {
-			err = errors.New("Max retries hit trying to see subscriptions")
-			return err
-		}
-		time.Sleep(1 * time.Second)
-	}
-
-	return nil
+	producerService.QueueURL = &queueURL
+	producerService.SqsClient = sqsClient
+	producerService.RetryCount = 10
+	return producerService
 }
 
 func (pService producerService) SendMessage(videoSlugs []string, videoDescription string, channelName string) error {
@@ -79,23 +52,20 @@ func (pService producerService) SendMessage(videoSlugs []string, videoDescriptio
 	}
 	messageBody := string(messageBytes)
 
-	message := &sns.PublishInput{
-		TopicArn: pService.TopicArn,
-		Message:  &messageBody,
+	message := &sqs.SendMessageInput{
+		QueueUrl:    pService.QueueURL,
+		MessageBody: &messageBody,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-	for retry := 1; retry <= pService.RetriesCount; retry++ {
-		req, _ := pService.SnsClient.PublishRequest(message)
-		req.HTTPRequest = req.HTTPRequest.WithContext(ctx)
-		err := req.Send()
+	for retry := 1; retry <= pService.RetryCount; retry++ {
+		_, err := pService.SqsClient.SendMessage(message)
 		if err == nil {
 			return nil
-		} else if retry == pService.RetriesCount {
+		} else if retry == pService.RetryCount {
 			err = errors.New("Max retries reached trying to publish sns mesage")
 			return err
 		}
-		fmt.Println("Error trying to publish to sns for " + channelName + " retrying")
+		fmt.Println("Err from SendMessage sqs " + err.Error())
+		fmt.Println("Error trying to push messgage to sqs for " + channelName + " retrying")
 		time.Sleep(1 * time.Second)
 	}
 
