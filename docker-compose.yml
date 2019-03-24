@@ -34,8 +34,8 @@ services:
     environment:
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
       TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
-      PRODUCER_ENDPOINT: "http://localstack:4575"
-      PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-slugs-local"
+      PRODUCER_ENDPOINT: "http://localstack:4576"
+      PRODUCER_URL: "http://localstack:4576/queue/clip-slugs-local"
     volumes:
       - ./clipfinder/bin/clipfinder:/var/task/clipfinder
 
@@ -45,8 +45,6 @@ services:
     environment:
       PRODUCER_ENDPOINT: "http://localstack:4575"
       PRODUCER_ARN: "arn:aws:sns:us-east-1:123456789012:clip-links-local"
-      CONSUMER_ENDPOINT: "http://localstack:4576"
-      CONSUMER_URL: "http://localstack:4576/queue/clip-slugs-local"
     volumes:
       - ./clipscraper:/var/task/
 

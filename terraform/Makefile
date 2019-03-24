@@ -32,21 +32,21 @@ deploy_local:
 
 .PHONY: deploy_dev
 deploy_dev:
-	cd dev && rm .terraform -rf
-	cd dev && terraform init -input=false
-	cd dev && yes | terraform apply  -input=false -auto-approve
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-dev" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-dev" -input=false
+	cd aws && yes | terraform apply -var="ENV=dev" -var="DOCKER_VER=dev"  -input=false -auto-approve
 
 .PHONY: destroy_dev
 destroy_dev:
-	cd dev && rm .terraform -rf
-	cd dev && terraform init -input=false
-	cd dev && terraform destroy
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-dev" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-dev" -input=false
+	cd aws && terraform destroy -var="ENV=dev" -var="DOCKER_VER=dev"
 
 .PHONY: plan_dev
 plan_dev:
-	cd dev && rm .terraform -rf
-	cd dev && terraform init -input=false
-	cd dev && terraform plan
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-dev" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-dev"  -input=false
+	cd aws && terraform plan -var="ENV=dev" -var="DOCKER_VER=dev"
 
 .PHONY: release_lock_dev
 release_lock_dev:
@@ -54,21 +54,21 @@ release_lock_dev:
 
 .PHONY: deploy_prod
 deploy_prod:
-	cd prod && rm .terraform -rf
-	cd prod && terraform init -input=false
-	cd prod && yes | terraform apply  -input=false -auto-approve
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-prod" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-prod" -input=false
+	cd aws && terraform plan -var="ENV=prod" -var="DOCKER_VER=latest"
 
 .PHONY: destroy_prod
 destroy_prod:
-	cd prod && rm .terraform -rf
-	cd prod && terraform init -input=false
-	cd prod && terraform destroy
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-prod" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-prod" -input=false
+	cd aws && terraform destroy -var="ENV=prod" -var="DOCKER_VER=latest"
 
 .PHONY: plan_prod
 plan_prod:
-	cd prod && rm .terraform -rf
-	cd prod && terraform init -input=false
-	cd prod && terraform plan
+	cd aws && rm .terraform -rf
+	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-prod" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-prod" -input=false
+	cd aws && terraform plan -var="ENV=prod" -var="DOCKER_VER=latest"
 
 .PHONY: release_lock_prod
 release_lock_prod:
@@ -76,10 +76,10 @@ release_lock_prod:
 
 .PHONY: init_remote_state
 init_remote_state:
-	cd dev/remote-state && terraform init -input=false
-	cd dev/remote-state && terraform apply -input=false -auto-approve
+	cd remote-state-dev && terraform init -input=false
+	cd remote-state-dev && terraform apply -input=false -auto-approve
 	echo "dev remote state deployed"
-	cd prod/remote-state && terraform init -input=false
-	cd prod/remote-state && terraform apply -input=false -auto-approve
+	cd remote-state-prod && terraform init -input=false
+	cd remote-state-prod && terraform apply -input=false -auto-approve
 	echo "prod remote state deployed"
 	echo "terraform remote state setup complete"

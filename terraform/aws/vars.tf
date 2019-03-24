@@ -3,9 +3,13 @@
 # Define these secrets as environment variables
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "TWITCH_CLIENT_ID_DEV" {}
-variable "TWITCH_CHANNEL_NAME_DEV" {}
-variable "YOUTUBE_AUTH_DEV" {}
+variable "TWITCH_CLIENT_ID" {}
+variable "TWITCH_CHANNEL_NAME" {}
+variable "YOUTUBE_AUTH" {}
+
+variable "ENV" {}
+
+variable "DOCKER_VER" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
@@ -20,14 +24,4 @@ variable "region" {
 variable "docker_image" {
   description = "The name of the Docker image to deploy for the gifbot (e.g. austin1237/gifbot)"
   default     = "austin1237/clip-stitcher"
-}
-
-variable "docker_version" {
-  description = "The version (i.e. tag) of the Docker container to deploy for the gifbot (e.g. latest, 12345)"
-  default     = "dev"
-}
-
-variable "env" {
-  description = "Name of the environment example dev/prod"
-  default     = "dev"
 }
