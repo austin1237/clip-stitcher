@@ -2,12 +2,12 @@ variable "sqs_queue_name" {
   description = "name of the sqs queue"
 }
 
-variable "sns_topic_name" {
-  description = "name of the sns topic"
+variable "lambda_arn" {
+  description = "arn of the lambda that sqs will invoke"
 }
 
-variable "lambda_arn" {
-  description = "arn of the lambda that sns will invoke"
+variable "lambda_timeout" {
+  description = "timeout of lambda_arn"
 }
 
 variable "archiver_arn" {

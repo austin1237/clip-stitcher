@@ -1,7 +1,7 @@
 # clip-stitcher
 [![CircleCI](https://circleci.com/gh/austin1237/clip-stitcher.svg?style=svg)](https://circleci.com/gh/austin1237/clip-stitcher)<br />
 A worker process that once a day combines and archives popular stream clips.
-![architecture](https://user-images.githubusercontent.com/1394341/44130144-4bf5db72-a009-11e8-9852-ab8fc132f1c0.png)
+![architecture](https://user-images.githubusercontent.com/1394341/54887139-169bb280-4e55-11e9-9749-ddd0b784c1c6.png)
 
 ## Prerequisites
 You must have the following installed/configured on your system for this to work correctly<br />
