@@ -6,17 +6,11 @@
 terraform {
   required_version = "> 0.11.0"
 
-  backend "s3" {
-    bucket         = "austin1237-clipstitcher-state-prod"
-    key            = "global/s3/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = "true"
-    dynamodb_table = "clipstitcher-state-lock-prod"
-  }
+  backend "s3" {}
 }
 
 provider "aws" {
-  version = "1.31"
+  version = "1.31.0"
   region  = "${var.region}"
 }
 
@@ -26,7 +20,7 @@ provider "aws" {
 
 module "vpc" {
   source = "./vpc"
-  name   = "clipstitcher-${var.env}"
+  name   = "clipstitcher-${var.ENV}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -34,17 +28,17 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clip-slugs-que" {
-  source         = "./queue"
-  sqs_queue_name = "clip-slugs-sqs-${var.env}"
-  sns_topic_name = "clip-slugs-sns-${var.env}"
+  source         = "./sqs-queue"
+  sqs_queue_name = "clip-slugs-sqs-${var.ENV}"
   lambda_arn     = "${module.clipscraper.lambda_arn}"
+  lambda_timeout = "${module.clipscraper.timeout}"
   archiver_arn =   "${module.clipslugs-archiver.lambda_arn}"
 }
 
 module "clip-links-que" {
-  source         = "./queue"
-  sqs_queue_name = "clip-links-sqs-${var.env}"
-  sns_topic_name = "clip-links-sns-${var.env}"
+  source         = "./sqs-and-sns-queue"
+  sqs_queue_name = "clip-links-sqs-${var.ENV}"
+  sns_topic_name = "clip-links-sns-${var.ENV}"
   lambda_arn     = "${module.fargaterunner.lambda_arn}"
   archiver_arn =   "${module.cliplinks-archiver.lambda_arn}"
 }
@@ -56,44 +50,45 @@ module "clip-links-que" {
 module "clipstitcher" {
   source = "./fargate"
 
-  name           = "clipstitcher-${var.env}"
+  name           = "clipstitcher-${var.ENV}"
   subnet_id      = "${module.vpc.subnet_id}"
   que_policy     = "${module.clip-links-que.consumer_policy}"
   image          = "${var.docker_image}"
-  docker_version = "${var.docker_version}"
+  docker_version = "${var.DOCKER_VER}"
   cpu            = 2048
   memory         = 4096
   desired_count  = 0
 
   num_env_vars = 3
-  env_vars     = "${map("YOUTUBE_AUTH", "${var.YOUTUBE_AUTH_PROD}", "APP_ENV","${var.env}", "CONSUMER_URL", "${module.clip-links-que.consumer_url}")}"
+  env_vars     = "${map("YOUTUBE_AUTH", "${var.YOUTUBE_AUTH}", "APP_ENV","${var.ENV}", "CONSUMER_URL", "${module.clip-links-que.consumer_url}")}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE LAMBDAS
+# LAMBDAS
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clipfinder" {
   source         = "./lambda"
   zip_location   = "../../clipfinder/clipfinder.zip"
-  name           = "clipfinder-${var.env}"
+  name           = "clipfinder-${var.ENV}"
   policy_count   = 1
   iam_policy_arn = ["${module.clip-slugs-que.producer_policy}"]
   handler        = "clipfinder"
   run_time       = "go1.x"
-  timeout        = 100
+  timeout        = 300
+  memory_size    = 1024
 
   env_vars = {
-    TWITCH_CLIENT_ID    = "${var.TWITCH_CLIENT_ID_PROD}"
-    TWITCH_CHANNEL_NAME = "${var.TWITCH_CHANNEL_NAME_PROD}"
-    PRODUCER_ARN        = "${module.clip-slugs-que.producer_arn}"
+    TWITCH_CLIENT_ID    = "${var.TWITCH_CLIENT_ID}"
+    TWITCH_CHANNEL_NAME = "${var.TWITCH_CHANNEL_NAME}"
+    PRODUCER_URL        = "${module.clip-slugs-que.sqs_url}"
   }
 }
 
 module "clipslugs-archiver" {
   source         = "./lambda"
   zip_location   = "../../archiver/archiver.zip"
-  name           = "clipslugs-archiver-${var.env}"
+  name           = "clipslugs-archiver-${var.ENV}"
   policy_count   = 2
   iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-slugs-que.dead_letter_consumer_policy}"]
   handler        = "index.handler"
@@ -108,7 +103,7 @@ module "clipslugs-archiver" {
 module "cliplinks-archiver" {
   source         = "./lambda"
   zip_location   = "../../archiver/archiver.zip"
-  name           = "cliplinks-archiver-${var.env}"
+  name           = "cliplinks-archiver-${var.ENV}"
   policy_count   = 2
   iam_policy_arn = ["${module.failed_message_db.producer_policy}", "${module.clip-links-que.dead_letter_consumer_policy}"]
   handler        = "index.handler"
@@ -123,26 +118,23 @@ module "cliplinks-archiver" {
 module "clipscraper" {
   source         = "./lambda"
   zip_location   = "../../clipscraper/clipscraper.zip"
-  name           = "clipscraper-${var.env}"
+  name           = "clipscraper-${var.ENV}"
   policy_count   = 2
   iam_policy_arn = ["${module.clip-slugs-que.consumer_policy}", "${module.clip-links-que.producer_policy}"]
   handler        = "index.handler"
   run_time       = "nodejs8.10"
-  memory_size    = 512
-  timeout        = 100
+  memory_size    = 1024
+  timeout        = 180
 
   env_vars = {
     PRODUCER_ARN = "${module.clip-links-que.producer_arn}"
-    CONSUMER_URL = "${module.clip-slugs-que.consumer_url}"
-    CONSUMER_WAIT_TIME = 5
-    CONSUMER_RETRY_COUNT = 10
   }
 }
 
 module "fargaterunner" {
   source         = "./lambda"
   zip_location   = "../../fargaterunner/fargaterunner.zip"
-  name           = "fargaterunner-${var.env}"
+  name           = "fargaterunner-${var.ENV}"
   policy_count   = 1
   iam_policy_arn = ["${module.clipstitcher.lambda_launch_policy}"]
   handler        = "fargaterunner"
@@ -162,18 +154,19 @@ module "fargaterunner" {
 module "timed-lambda" {
   source               = "./cloudwatch-lambda-trigger"
   start_time           = "cron(30 10 * * ? *)"
-  name                 = "clipfinder-${var.env}-trigger"
-  lambda_function_name = "clipfinder-${var.env}"
-  description          = "The timed trigger for clipfinder-${var.env}"
+  name                 = "clipfinder-${var.ENV}-trigger"
+  lambda_function_name = "clipfinder-${var.ENV}"
+  description          = "The timed trigger for clipfinder-${var.ENV}"
   lambda_arn           = "${module.clipfinder.lambda_arn}"
 }
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DynamoDb Table that will store all messages sent to a dead-letter
 # ---------------------------------------------------------------------------------------------------------------------
 module "failed_message_db" {
    source = "./dynamodb"
-   table_name = "FailedMessages-${var.env}"
+   table_name = "FailedMessages-${var.ENV}"
    hash_key = "QueName"
    range_key = "MessageID"
 }

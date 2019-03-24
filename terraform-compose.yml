@@ -11,6 +11,6 @@ services:
       - ./fargaterunner:/fargaterunner
       - ./archiver:/archiver
     environment:
-      TF_VAR_TWITCH_CLIENT_ID_DEV: ${TWITCH_CLIENT_ID}
-      TF_VAR_TWITCH_CHANNEL_NAME_DEV: ${TWITCH_CHANNEL_NAME}
-      TF_VAR_YOUTUBE_AUTH_DEV: ${YOUTUBE_AUTH}
+      TF_VAR_TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TF_VAR_TWITCH_CHANNEL_NAME: ${TWITCH_CHANNEL_NAME}
+      TF_VAR_YOUTUBE_AUTH: ${YOUTUBE_AUTH}

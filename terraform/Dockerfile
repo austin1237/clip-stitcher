@@ -1,4 +1,4 @@
-FROM hashicorp/terraform:0.11.7
+FROM hashicorp/terraform:0.11.13
 # Install make
 RUN apk add --update make
 # Install dockerize
