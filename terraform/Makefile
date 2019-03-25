@@ -56,7 +56,7 @@ release_lock_dev:
 deploy_prod:
 	cd aws && rm .terraform -rf
 	cd aws && terraform init -backend-config="dynamodb_table=clipstitcher-state-lock-prod" -backend-config="key=global/s3/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="encrypt=true" -backend-config="bucket=austin1237-clipstitcher-state-prod" -input=false
-	cd aws && terraform plan -var="ENV=prod" -var="DOCKER_VER=latest"
+	cd aws && terraform apply -var="ENV=prod" -var="DOCKER_VER=latest" -input=false -auto-approve
 
 .PHONY: destroy_prod
 destroy_prod:
