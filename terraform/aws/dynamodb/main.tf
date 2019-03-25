@@ -2,8 +2,7 @@ resource "aws_dynamodb_table" "dynamodb_table" {
     name           = "${var.table_name}"
     hash_key = "${var.hash_key}"
     range_key = "${var.range_key}"
-    read_capacity  = "${var.read_capacity}"
-    write_capacity = "${var.write_capacity}"
+    billing_mode   = "PAY_PER_REQUEST"
 
     attribute {
         name = "${var.hash_key}"
