@@ -2,10 +2,30 @@ package twitch
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func filterOutOldClips(clips twitchAPIResp) twitchAPIResp {
+	var filteredClips twitchAPIResp
+	before := len(clips.Clips)
+	for _, clip := range clips.Clips {
+		now := time.Now()
+		timeDiff := now.Sub(clip.CreatedAt)
+		hourDiff := timeDiff.Hours()
+		fmt.Println(hourDiff)
+		// If a clip was created longer than 1 day ago it will be ignored.
+		if hourDiff < 24 {
+			filteredClips.Clips = append(filteredClips.Clips, clip)
+		}
+	}
+	after := len(filteredClips.Clips)
+	fmt.Println(before)
+	fmt.Println(after)
+	return filteredClips
+}
 
 func filterOutOverlap(clips twitchAPIResp) (twitchAPIResp, error) {
 	var finishedClips twitchAPIResp

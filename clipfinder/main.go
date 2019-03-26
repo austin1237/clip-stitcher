@@ -9,7 +9,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -54,17 +53,15 @@ func HandleRequest(ctx context.Context, event events.S3Event) (string, error) {
 	for _, channelName := range channels {
 		twitchService := twitch.NewTwitchService(channelName, 10, twitchClientID)
 		preparedClips, err := twitchService.GetClips()
-		if err != nil {
-			log.Fatal(err.Error())
-			return "", err
+		if err == nil {
+			pService := producer.NewProducerService(producerEndpoint, producerURL)
+			err = pService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, channelName)
+			if err == nil {
+				fmt.Println("Message Sent for " + channelName)
+			}
+		} else if err != nil {
+			fmt.Println("Message skipped for " + channelName + "due to " + err.Error())
 		}
-		pService := producer.NewProducerService(producerEndpoint, producerURL)
-		err = pService.SendMessage(preparedClips.VideoSlugs, preparedClips.VideoDescription, channelName)
-		if err != nil {
-			log.Fatal(err.Error())
-			return "", err
-		}
-		fmt.Println("Message Sent for " + channelName)
 	}
 	return "All channel messages sent", nil
 }

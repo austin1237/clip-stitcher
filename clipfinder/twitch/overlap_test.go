@@ -50,3 +50,7 @@ func TestInvalidSecondsFromURL(t *testing.T) {
 	_, err := getTimeFromURL(testURL)
 	assert.Equal(t, "invalid seconds found in vod url", err.Error())
 }
+
+func TestFilterOutOldClips(t *testing.T) {
+
+}

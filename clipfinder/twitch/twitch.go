@@ -27,6 +27,7 @@ func (tService TwitchService) GetClips() (PreparedClips, error) {
 		return preparedClips, err
 	}
 
+	tclips = filterOutOldClips(tclips)
 	tclips = filterOutNonVod(tclips)
 	tclips, err = filterOutOverlap(tclips)
 

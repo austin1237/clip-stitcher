@@ -9,11 +9,12 @@ type clip struct {
 }
 
 type twitchClip struct {
-	Slug     string  `json:"slug"`
-	URL      string  `json:"url"`
-	Duration float64 `json:"duration"`
-	Title    string  `json:"title"`
-	Vod      struct {
+	Slug      string    `json:"slug"`
+	URL       string    `json:"url"`
+	Duration  float64   `json:"duration"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
+	Vod       struct {
 		ID  string `json:"id"`
 		URL string `json:"url"`
 	} `json:"vod"`
